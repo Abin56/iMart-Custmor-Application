@@ -1,0 +1,220 @@
+<<<<<<< HEAD
+lib/
+"├─ app/                          # app-wide wiring (bootstrap, routing, theme, DI)"
+│  ├─ bootstrap/
+"│  │  ├─ app_bootstrap.dart      # Starts the app, ProviderScope, injects global overrides (e.g., mock clients in dev/tests)., error hooks"
+"│  │  ├─ hive_init.dart          # open boxes, register adapters,Central place to add/remove boxes safely"
+"│  │  └─ env_loader.dart         #Loads .env or compile-time constants; detects flavor (dev/stg/prod), Validates required vars (base URLs, feature flags) and logs a friendly error if missing."
+│  ├─ config/
+"│  │  ├─ env.dart                # A tiny model for current environment and accessors (e.g., Env.current.apiBaseUrl)."
+"│  │  ├─ constants.dart          # Global constants that aren’t styles: API timeouts, pagination defaults, debounce durations, keys for shared prefs, etc."
+│  │  └─ feature_flags.dart      # Central switches for staged rollouts/experiments; used in providers & UI to gate features.
+│  ├─ router/
+"│  │  ├─ app_router.dart         # GoRouter/Navigator 2.0 setup, Declares typed paths, route params, transitions, and deep links, Encapsulates navigation helpers (e.g., goToLogin(), goToHome())."
+"│  │  └─ guards/                 # This folder contains small files that protect certain routes (screens) in your app, guards decide whether a user is allowed to enter a screen or not."
+│  ├─ theme/
+│  │  ├─ colors.dart             # brand palette tokens (primary/secondary/semantic).
+│  │  ├─ typography.dart         # text styles and scales.
+"│  │  └─ theme.dart              # ThemeData assembly, radius/spacing/elevation primitives."
+│  ├─ localization/
+"│  │  ├─ l10n.dart               # locale delegates, helpers"
+│  │  └─ arb/                    # *.arb files per locale
+│  ├─ monitoring/
+│  │  ├─ analytics.dart          # analytics events wrapper
+│  │  └─ crash_reporting.dart    # Crashlytics/Sentry hooks
+│  └─ app.dart                   # MaterialApp / router entry (thin)
+│
+├─ core/                         # cross-cutting foundations (no feature deps)
+│  ├─ network/
+"│  │  ├─ api_client.dart         # Dio/Http client, interceptors, retry"
+│  │  ├─ endpoints.dart          # path builders
+│  │  └─ network_exceptions.dart # error mapping
+│  ├─ storage/
+│  │  ├─ hive/
+│  │  │  ├─ boxes.dart           # box names
+│  │  │  ├─ keys.dart            # keys in boxes
+"│  │  │  └─ adapters/            # When you want to save a custom Dart object (like User, Profile, or Pooja) into Hive, Hive doesn’t understand your object directly — it only understands basic types (String, int, etc.)."
+│  │  └─ secure_store.dart       # tokens/PII (Keychain/Keystore)
+│  ├─ utils/
+"│  │  ├─ date_utils.dart         # formatting, locale helpers"
+│  │  ├─ validators.dart         # input/business validators
+│  │  └─ logger.dart             # unified logging
+│  ├─ widgets/                   # design-system atoms/molecules
+│  │  ├─ app_button.dart
+│  │  ├─ app_card.dart
+│  │  ├─ app_text_field.dart
+│  │  └─ navbar.dart             # shared bottom nav
+│  └─ error/
+│     ├─ failure.dart            # domain-level failures
+│     └─ error_view.dart         # generic error/empty states
+│
+├─ features/                     # each feature is isolated & complete
+│  ├─ auth/
+"│  │  ├─ domain/                 # defines what a User and Session are, and an abstract AuthRepository."
+"│  │  │  ├─ entities/            # User, Session"
+│  │  │  └─ repositories/        # AuthRepository (abstract)
+│  │  ├─ application/            # Riverpod logic (no UI)
+"│  │  │  ├─ states/              # AuthState, SessionState, what the login state is (loading, success, error)."
+"│  │  │  ├─ providers/           # authProvider, sessionProvider,manage login/logout actions."
+"│  │  │  └─ usecases/            # login, logout, refreshToken,actual functions for login, logout, refresh."
+│  │  ├─ infrastructure/         # how data is fetched/saved:
+│  │  │  ├─ data_sources/
+"│  │  │  │  ├─ remote/           # auth_api.dart, API calls to backend"
+"│  │  │  │  └─ local/            # auth_local_ds.dart,write user/token to Hive (auth_local_ds.dart)."
+│  │  │  └─ repositories/        # joins both remote + local logic (AuthRepositoryImpl).
+│  │  └─ presentation/     #UI
+"│  │     ├─ screen/              # login_screen.dart,full login screen."
+"│  │     └─ components/          # header_section, form_section, actions_section,smaller parts (header, form, buttons)."
+│  │
+│  ├─ dashboard/
+│  │  ├─ domain/
+"│  │  │  ├─ entities/            # God, DatePayload"
+│  │  │  └─ repositories/        # DashboardRepository (abstract)
+│  │  ├─ application/
+│  │  │  ├─ states/              # DashboardState
+"│  │  │  ├─ providers/           # greeting, date, gods, selection"
+"│  │  │  └─ usecases/            # fetchHeader, fetchGods"
+│  │  ├─ infrastructure/
+│  │  │  ├─ data_sources/
+│  │  │  │  ├─ remote/           # dashboard_api.dart
+│  │  │  │  └─ local/            # dashboard_local_ds.dart
+│  │  │  └─ repositories/        # DashboardRepositoryImpl
+│  │  └─ presentation/
+│  │     ├─ screen/              # home_screen.dart
+"│  │     └─ components/          # home_app_bar, date_display, god_list,"
+"│  │                              # pooja_teasers, show_pooja_button"
+│  │
+│  ├─ profile/
+│  │  ├─ domain/
+│  │  │  ├─ entities/            # Profile
+│  │  │  └─ repositories/        # ProfileRepository (abstract)
+│  │  ├─ application/
+│  │  │  ├─ states/              # ProfileState
+"│  │  │  ├─ providers/           # profileProvider, logoutProvider"
+"│  │  │  └─ usecases/            # fetchProfile, logout"
+│  │  ├─ infrastructure/
+│  │  │  ├─ data_sources/
+│  │  │  │  ├─ remote/           # profile_api.dart
+│  │  │  │  └─ local/            # profile_local_ds.dart
+│  │  │  └─ repositories/        # ProfileRepositoryImpl
+│  │  └─ presentation/
+│  │     ├─ screen/              # profile_screen.dart
+"│  │     └─ components/          # profile_header, profile_info_list,"
+"│  │                              # assigned_gods_list, logout_button"
+.............
+"│  └─ common/                     # small, reusable subfeatures (optional)"
+"│     ├─ pagination/ …            # list controllers, paging sources"
+"│     └─ attachments/ …           # file pickers, uploaders"
+│
+├─ main.dart                      # calls app/bootstrap/app_bootstrap.dart
+=======
+lib/
+"├─ app/                          # app-wide wiring (bootstrap, routing, theme, DI)"
+│  ├─ bootstrap/
+"│  │  ├─ app_bootstrap.dart      # Starts the app, ProviderScope, injects global overrides (e.g., mock clients in dev/tests)., error hooks"
+"│  │  ├─ hive_init.dart          # open boxes, register adapters,Central place to add/remove boxes safely"
+"│  │  └─ env_loader.dart         #Loads .env or compile-time constants; detects flavor (dev/stg/prod), Validates required vars (base URLs, feature flags) and logs a friendly error if missing."
+│  ├─ config/
+"│  │  ├─ env.dart                # A tiny model for current environment and accessors (e.g., Env.current.apiBaseUrl)."
+"│  │  ├─ constants.dart          # Global constants that aren’t styles: API timeouts, pagination defaults, debounce durations, keys for shared prefs, etc."
+│  │  └─ feature_flags.dart      # Central switches for staged rollouts/experiments; used in providers & UI to gate features.
+│  ├─ router/
+"│  │  ├─ app_router.dart         # GoRouter/Navigator 2.0 setup, Declares typed paths, route params, transitions, and deep links, Encapsulates navigation helpers (e.g., goToLogin(), goToHome())."
+"│  │  └─ guards/                 # This folder contains small files that protect certain routes (screens) in your app, guards decide whether a user is allowed to enter a screen or not."
+│  ├─ theme/
+│  │  ├─ colors.dart             # brand palette tokens (primary/secondary/semantic).
+│  │  ├─ typography.dart         # text styles and scales.
+"│  │  └─ theme.dart              # ThemeData assembly, radius/spacing/elevation primitives."
+│  ├─ localization/
+"│  │  ├─ l10n.dart               # locale delegates, helpers"
+│  │  └─ arb/                    # *.arb files per locale
+│  ├─ monitoring/
+│  │  ├─ analytics.dart          # analytics events wrapper
+│  │  └─ crash_reporting.dart    # Crashlytics/Sentry hooks
+│  └─ app.dart                   # MaterialApp / router entry (thin)
+│
+├─ core/                         # cross-cutting foundations (no feature deps)
+│  ├─ network/
+"│  │  ├─ api_client.dart         # Dio/Http client, interceptors, retry"
+│  │  ├─ endpoints.dart          # path builders
+│  │  └─ network_exceptions.dart # error mapping
+│  ├─ storage/
+│  │  ├─ hive/
+│  │  │  ├─ boxes.dart           # box names
+│  │  │  ├─ keys.dart            # keys in boxes
+"│  │  │  └─ adapters/            # When you want to save a custom Dart object (like User, Profile, or Pooja) into Hive, Hive doesn’t understand your object directly — it only understands basic types (String, int, etc.)."
+│  │  └─ secure_store.dart       # tokens/PII (Keychain/Keystore)
+│  ├─ utils/
+"│  │  ├─ date_utils.dart         # formatting, locale helpers"
+│  │  ├─ validators.dart         # input/business validators
+│  │  └─ logger.dart             # unified logging
+│  ├─ widgets/                   # design-system atoms/molecules
+│  │  ├─ app_button.dart
+│  │  ├─ app_card.dart
+│  │  ├─ app_text_field.dart
+│  │  └─ navbar.dart             # shared bottom nav
+│  └─ error/
+│     ├─ failure.dart            # domain-level failures
+│     └─ error_view.dart         # generic error/empty states
+│
+├─ features/                     # each feature is isolated & complete
+│  ├─ auth/
+"│  │  ├─ domain/                 # defines what a User and Session are, and an abstract AuthRepository."
+"│  │  │  ├─ entities/            # User, Session"
+│  │  │  └─ repositories/        # AuthRepository (abstract)
+│  │  ├─ application/            # Riverpod logic (no UI)
+"│  │  │  ├─ states/              # AuthState, SessionState, what the login state is (loading, success, error)."
+"│  │  │  ├─ providers/           # authProvider, sessionProvider,manage login/logout actions."
+"│  │  │  └─ usecases/            # login, logout, refreshToken,actual functions for login, logout, refresh."
+│  │  ├─ infrastructure/         # how data is fetched/saved:
+│  │  │  ├─ data_sources/
+"│  │  │  │  ├─ remote/           # auth_api.dart, API calls to backend"
+"│  │  │  │  └─ local/            # auth_local_ds.dart,write user/token to Hive (auth_local_ds.dart)."
+│  │  │  └─ repositories/        # joins both remote + local logic (AuthRepositoryImpl).
+│  │  └─ presentation/     #UI
+"│  │     ├─ screen/              # login_screen.dart,full login screen."
+"│  │     └─ components/          # header_section, form_section, actions_section,smaller parts (header, form, buttons)."
+│  │
+│  ├─ dashboard/
+│  │  ├─ domain/
+"│  │  │  ├─ entities/            # God, DatePayload"
+│  │  │  └─ repositories/        # DashboardRepository (abstract)
+│  │  ├─ application/
+│  │  │  ├─ states/              # DashboardState
+"│  │  │  ├─ providers/           # greeting, date, gods, selection"
+"│  │  │  └─ usecases/            # fetchHeader, fetchGods"
+│  │  ├─ infrastructure/
+│  │  │  ├─ data_sources/
+│  │  │  │  ├─ remote/           # dashboard_api.dart
+│  │  │  │  └─ local/            # dashboard_local_ds.dart
+│  │  │  └─ repositories/        # DashboardRepositoryImpl
+│  │  └─ presentation/
+│  │     ├─ screen/              # home_screen.dart
+"│  │     └─ components/          # home_app_bar, date_display, god_list,"
+"│  │                              # pooja_teasers, show_pooja_button"
+│  │
+│  ├─ profile/
+│  │  ├─ domain/
+│  │  │  ├─ entities/            # Profile
+│  │  │  └─ repositories/        # ProfileRepository (abstract)
+│  │  ├─ application/
+│  │  │  ├─ states/              # ProfileState
+"│  │  │  ├─ providers/           # profileProvider, logoutProvider"
+"│  │  │  └─ usecases/            # fetchProfile, logout"
+│  │  ├─ infrastructure/
+│  │  │  ├─ data_sources/
+│  │  │  │  ├─ remote/           # profile_api.dart
+│  │  │  │  └─ local/            # profile_local_ds.dart
+│  │  │  └─ repositories/        # ProfileRepositoryImpl
+│  │  └─ presentation/
+│  │     ├─ screen/              # profile_screen.dart
+"│  │     └─ components/          # profile_header, profile_info_list,"
+"│  │                              # assigned_gods_list, logout_button"
+.............
+"│  └─ common/                     # small, reusable subfeatures (optional)"
+"│     ├─ pagination/ …            # list controllers, paging sources"
+"│     └─ attachments/ …           # file pickers, uploaders"
+│
+├─ main.dart                      # calls app/bootstrap/app_bootstrap.dart
+>>>>>>> origin/claude/feature-auth-019UCGSZAAUAJbJDUEvQ3DbS-014LFt82aDVYa9o21jEjBq1U
+└─ globals.dart (optional)        # one-liner accessors (avoid if possible)

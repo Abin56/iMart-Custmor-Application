@@ -1,0 +1,50 @@
+// lib/features/home/presentation/components/category_grid.dart
+
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+
+import '../../domain/entities/category.dart';
+import 'category_tile.dart';
+
+class CategoryGrid extends StatelessWidget {
+  final List<Category> categories;
+  final ValueChanged<Category> onCategoryClick;
+
+  const CategoryGrid({
+    super.key,
+    required this.categories,
+    required this.onCategoryClick,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (categories.isEmpty) return const SizedBox.shrink();
+
+    // Calculate number of rows needed (4 items per row)
+    final rowCount = (categories.length / 4).ceil();
+    // Each row is approximately 140.h (item height + spacing)
+    final dynamicHeight = rowCount * 140.h;
+
+    return Container(
+      height: dynamicHeight,
+      padding: EdgeInsets.symmetric(horizontal: 16.w),
+      child: GridView.builder(
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 4,
+          mainAxisSpacing: 14.h,
+          crossAxisSpacing: 10.w,
+          childAspectRatio:
+              0.65, // Lower value = taller cells for more text space
+        ),
+        itemCount: categories.length,
+        itemBuilder: (context, index) {
+          return CategoryTile(
+            category: categories[index],
+            onTap: () => onCategoryClick(categories[index]),
+          );
+        },
+      ),
+    );
+  }
+}
