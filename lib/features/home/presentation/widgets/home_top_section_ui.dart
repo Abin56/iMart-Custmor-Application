@@ -27,13 +27,10 @@ class HomeTopSectionUI extends StatelessWidget {
             // Layer 1: Green curved background
             _buildGreenBackground(),
 
-            // Layer 2: White curved section (creates wave effect)
-           //_buildWhiteCurvedBottom(),
-
-            // Layer 3: Content on green background
+            // Layer 2: Content on green background
             _buildTopContent(context),
 
-            // Layer 4: Category icons (overlapping green & white)
+            // Layer 3: Category icons (overlapping green & white)
             _buildCategoryIcons(),
           ],
         ),
@@ -52,22 +49,6 @@ class HomeTopSectionUI extends StatelessWidget {
     );
   }
 
-  /// White curved section at bottom (creates wave overlap effect)
-  Widget _buildWhiteCurvedBottom() {
-    return Positioned(
-      bottom: 0,
-      left: 0,
-      right: 0,
-      child: ClipPath(
-        clipper: _WhiteCurvedClipper(),
-        child: Container(
-          height: 120.h,
-          color: Colors.white,
-        ),
-      ),
-    );
-  }
-
   /// Top content (header, promo, indicator)
   Widget _buildTopContent(BuildContext context) {
     return Positioned(
@@ -81,9 +62,7 @@ class HomeTopSectionUI extends StatelessWidget {
             SizedBox(height: 16.h),
             _HeaderRow(),
             SizedBox(height: 24.h),
-            _PromoCard(),
-            SizedBox(height: 12.h),
-            _SliderIndicator(),
+            _PromoCardWithIndicator(),
           ],
         ),
       ),
@@ -113,11 +92,7 @@ class _HeaderRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Location icon
-          Icon(
-            Icons.location_on,
-            color: Colors.white,
-            size: 24.sp,
-          ),
+          Icon(Icons.location_on, color: Colors.white, size: 24.sp),
           SizedBox(width: 8.w),
           // Address column
           Expanded(
@@ -159,11 +134,7 @@ class _HeaderRow extends StatelessWidget {
                 width: 2.w,
               ),
             ),
-            child: Icon(
-              Icons.person_outline,
-              color: Colors.white,
-              size: 26.sp,
-            ),
+            child: Icon(Icons.person_outline, color: Colors.white, size: 26.sp),
           ),
         ],
       ),
@@ -171,16 +142,117 @@ class _HeaderRow extends StatelessWidget {
   }
 }
 
-/// Promotional banner card
-class _PromoCard extends StatelessWidget {
+/// Promotional banner card with indicators combined
+class _PromoCardWithIndicator extends StatefulWidget {
+  @override
+  State<_PromoCardWithIndicator> createState() =>
+      _PromoCardWithIndicatorState();
+}
+
+class _PromoCardWithIndicatorState extends State<_PromoCardWithIndicator> {
+  late PageController _pageController;
+  double _currentPage = 0.0;
+
+  final List<_PromoBannerData> _banners = const [
+    _PromoBannerData(
+      title: 'Use Code "Fresh" to',
+      subtitle: 'get 10% off on all\nFresh groceries',
+      iconData: Icons.discount_outlined,
+      imagePath: 'assets/images/fruits.png',
+    ),
+    _PromoBannerData(
+      title: 'Free Delivery',
+      subtitle: 'on orders above\n₹299',
+      iconData: Icons.local_shipping_outlined,
+      imagePath: 'assets/images/trolley.png',
+    ),
+    _PromoBannerData(
+      title: 'Fresh Vegetables',
+      subtitle: 'Daily farm fresh\ndelivery',
+      iconData: Icons.eco_outlined,
+      imagePath: 'assets/images/fruits.png',
+    ),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(viewportFraction: 0.72);
+    _pageController.addListener(() {
+      setState(() {
+        _currentPage = _pageController.page ?? 0.0;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
+    return Column(
+      children: [
+        SizedBox(
+          height: 140.h,
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
+
+            child: PageView.builder(
+              controller: _pageController,
+              itemCount: _banners.length,
+              clipBehavior: Clip.none,
+              itemBuilder: (context, index) {
+               final distance = (index - _currentPage).abs();
+                final scaleX = 1.0 - (distance * 0.08);
+                final scaleY = 1.0 - (distance * 0.25);
+                final opacity = (1.0 - distance * 0.35).clamp(0.6, 1.0);
+
+                return Transform.translate(
+                  offset: Offset((index - _currentPage) * 1.w, 0),
+                  child: Transform(
+                    alignment: Alignment.center,
+                    transform: Matrix4.diagonal3Values(scaleX, scaleY, 1.0),
+                    child: Opacity(
+                      opacity: opacity,
+                      child: _buildBanner(_banners[index]),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+        SizedBox(height: 16.h),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(_banners.length, (index) {
+            final isActive = _currentPage.round() == index;
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              margin: EdgeInsets.symmetric(horizontal: 4.w),
+              width: isActive ? 24.w : 8.w,
+              height: 8.h,
+              decoration: BoxDecoration(
+                color: isActive
+                    ? Colors.white
+                    : Colors.white.withValues(alpha: 0.4),
+                borderRadius: BorderRadius.circular(4.r),
+              ),
+            );
+          }),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBanner(_PromoBannerData banner) {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 20.w),
-      height: 130.h,
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5EDE0), // Light cream/beige
+        color: const Color(0xFFF5EDE0),
         borderRadius: BorderRadius.circular(20.r),
         boxShadow: [
           BoxShadow(
@@ -192,7 +264,6 @@ class _PromoCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Left icon
           Container(
             width: 48.w,
             height: 48.h,
@@ -201,20 +272,19 @@ class _PromoCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(12.r),
             ),
             child: Icon(
-              Icons.discount_outlined,
+              banner.iconData,
               color: const Color(0xFF4CAF50),
               size: 28.sp,
             ),
           ),
           SizedBox(width: 16.w),
-          // Promo text
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'Use Code "Fresh" to',
+                  banner.title,
                   style: TextStyle(
                     color: const Color(0xFF1A1A1A),
                     fontSize: 15.sp,
@@ -223,7 +293,7 @@ class _PromoCard extends StatelessWidget {
                 ),
                 SizedBox(height: 4.h),
                 Text(
-                  'get 10% off on all\nFresh groceries',
+                  banner.subtitle,
                   style: TextStyle(
                     color: Colors.grey.shade700,
                     fontSize: 13.sp,
@@ -234,17 +304,16 @@ class _PromoCard extends StatelessWidget {
               ],
             ),
           ),
-          // Right image
           Container(
-            width: 100.w,
-            height: 100.h,
+            width: 80.w,
+            height: 80.h,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12.r),
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12.r),
               child: Image.asset(
-                'assets/images/fruits.png',
+                banner.imagePath,
                 fit: BoxFit.contain,
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
@@ -254,7 +323,7 @@ class _PromoCard extends StatelessWidget {
                     ),
                     child: Icon(
                       Icons.shopping_basket,
-                      size: 48.sp,
+                      size: 40.sp,
                       color: const Color(0xFF4CAF50),
                     ),
                   );
@@ -268,41 +337,19 @@ class _PromoCard extends StatelessWidget {
   }
 }
 
-/// Slider indicator dots
-class _SliderIndicator extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const _Dot(isActive: false),
-        SizedBox(width: 6.w),
-        const _Dot(isActive: true), // Active (center dot)
-        SizedBox(width: 6.w),
-        const _Dot(isActive: false),
-      ],
-    );
-  }
-}
+/// Promo banner data model
+class _PromoBannerData {
+  final String title;
+  final String subtitle;
+  final IconData iconData;
+  final String imagePath;
 
-/// Single indicator dot
-class _Dot extends StatelessWidget {
-  final bool isActive;
-
-  const _Dot({required this.isActive});
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      width: isActive ? 24.w : 8.w,
-      height: 8.h,
-      decoration: BoxDecoration(
-        color: isActive ? Colors.white : Colors.white.withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(4.r),
-      ),
-    );
-  }
+  const _PromoBannerData({
+    required this.title,
+    required this.subtitle,
+    required this.iconData,
+    required this.imagePath,
+  });
 }
 
 /// Category carousel with rotary dial animation
@@ -362,7 +409,10 @@ class _CategoryCarouselState extends State<_CategoryCarousel>
 
     // Animate through categories - stop at a balanced middle position
     // Instead of going to the last icon, stop at index 4-5 for better balance
-    final double targetPosition = (_categories.length / 2) * _pageController.position.viewportDimension * 0.25;
+    final double targetPosition =
+        (_categories.length / 2) *
+        _pageController.position.viewportDimension *
+        0.25;
 
     await _pageController.animateTo(
       targetPosition,
@@ -401,7 +451,9 @@ class _CategoryCarouselState extends State<_CategoryCarousel>
       child: PageView.builder(
         controller: _pageController,
         itemCount: _categories.length,
-        physics: _autoRotating ? const NeverScrollableScrollPhysics() : const BouncingScrollPhysics(),
+        physics: _autoRotating
+            ? const NeverScrollableScrollPhysics()
+            : const BouncingScrollPhysics(),
         itemBuilder: (context, index) {
           return _buildCategoryIcon(index);
         },
@@ -447,8 +499,10 @@ class _CategoryCarouselState extends State<_CategoryCarousel>
     // difference 0 (center) → offset = +25 (push down into the dip)
     // difference 2+ (edges) → offset = 0 (stay at baseline)
     final double normalizedDiff = (difference / 2.0).clamp(0.0, 1.0);
-    final double curveValue = normalizedDiff * normalizedDiff; // x² gives parabolic shape
-    final double offset = curveDepth * (1 - curveValue); // Positive for center, 0 for edges
+    final double curveValue =
+        normalizedDiff * normalizedDiff; // x² gives parabolic shape
+    final double offset =
+        curveDepth * (1 - curveValue); // Positive for center, 0 for edges
 
     return offset;
   }
@@ -459,10 +513,7 @@ class CategoryData {
   final IconData icon;
   final String label;
 
-  const CategoryData({
-    required this.icon,
-    required this.label,
-  });
+  const CategoryData({required this.icon, required this.label});
 }
 
 /// Single category item
@@ -470,10 +521,7 @@ class _CategoryItem extends StatelessWidget {
   final IconData icon;
   final String label;
 
-  const _CategoryItem({
-    required this.icon,
-    required this.label,
-  });
+  const _CategoryItem({required this.icon, required this.label});
 
   @override
   Widget build(BuildContext context) {
@@ -499,11 +547,7 @@ class _CategoryItem extends StatelessWidget {
               ),
             ],
           ),
-          child: Icon(
-            icon,
-            color: const Color(0xFF145A32),
-            size: 28.sp,
-          ),
+          child: Icon(icon, color: const Color(0xFF145A32), size: 28.sp),
         ),
         SizedBox(height: 6.h),
         // Label
@@ -547,8 +591,10 @@ class _GreenCurvedClipper extends CustomClipper<Path> {
 
     // Smooth wide wave curve at bottom - single continuous bezier
     path.quadraticBezierTo(
-      width / 2, height + 50,  // Control point at center - creates gentle downward curve
-      0, height - 50,          // End point at left side
+      width / 2,
+      height + 50, // Control point at center - creates gentle downward curve
+      0,
+      height - 50, // End point at left side
     );
 
     // Left edge up
@@ -579,8 +625,10 @@ class _WhiteCurvedClipper extends CustomClipper<Path> {
 
     // Smooth wide wave curve at top - single continuous bezier (mirrors green)
     path.quadraticBezierTo(
-      width / 2, -60,  // Control point at center - creates gentle upward curve
-      width, 50,        // End point at right side
+      width / 2,
+      -60, // Control point at center - creates gentle upward curve
+      width,
+      50, // End point at right side
     );
 
     // Right edge down
