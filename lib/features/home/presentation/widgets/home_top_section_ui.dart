@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../../../../app/theme/app_spacing.dart';
+
 /// Home screen top section - UI ONLY implementation
 /// Matches EXACT design specifications from screenshot
 ///
@@ -18,22 +20,20 @@ class HomeTopSectionUI extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SizedBox(
-        height: 380.h,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            // Layer 1: Green curved background
-            _buildGreenBackground(),
+    return SizedBox(
+      height: 380.h,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // Layer 1: Green curved background
+          _buildGreenBackground(),
 
-            // Layer 2: Content on green background
-            _buildTopContent(context),
+          // Layer 2: Content on green background
+          _buildTopContent(context),
 
-            // Layer 3: Category icons (overlapping green & white)
-            _buildCategoryIcons(),
-          ],
-        ),
+          // Layer 3: Category icons (overlapping green & white)
+          _buildCategoryIcons(),
+        ],
       ),
     );
   }
@@ -43,7 +43,7 @@ class HomeTopSectionUI extends StatelessWidget {
     return ClipPath(
       clipper: _GreenCurvedClipper(),
       child: Container(
-        height: 320.h,
+        height: 310.h,
         color: const Color(0xFF145A32), // Dark forest green
       ),
     );
@@ -59,9 +59,9 @@ class HomeTopSectionUI extends StatelessWidget {
         bottom: false,
         child: Column(
           children: [
-            SizedBox(height: 16.h),
+            AppSpacing.h12,
             _HeaderRow(),
-            SizedBox(height: 24.h),
+            AppSpacing.h12,
             _PromoCardWithIndicator(),
           ],
         ),
@@ -73,10 +73,10 @@ class HomeTopSectionUI extends StatelessWidget {
   /// Swipeable carousel with smooth curve following
   Widget _buildCategoryIcons() {
     return Positioned(
-      bottom: 20.h,
+      bottom: 15.h,
       left: 0,
       right: 0,
-      height: 100.h,
+      height: 110.h,
       child: const _CategoryCarousel(),
     );
   }
@@ -193,64 +193,46 @@ class _PromoCardWithIndicatorState extends State<_PromoCardWithIndicator> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        SizedBox(
-          height: 140.h,
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.w),
-
-            child: PageView.builder(
-              controller: _pageController,
-              itemCount: _banners.length,
-              clipBehavior: Clip.none,
-              itemBuilder: (context, index) {
-               final distance = (index - _currentPage).abs();
-                final scaleX = 1.0 - (distance * 0.08);
-                final scaleY = 1.0 - (distance * 0.25);
-                final opacity = (1.0 - distance * 0.35).clamp(0.6, 1.0);
-
-                return Transform.translate(
-                  offset: Offset((index - _currentPage) * 1.w, 0),
-                  child: Transform(
-                    alignment: Alignment.center,
-                    transform: Matrix4.diagonal3Values(scaleX, scaleY, 1.0),
-                    child: Opacity(
-                      opacity: opacity,
-                      child: _buildBanner(_banners[index]),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-        SizedBox(height: 16.h),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(_banners.length, (index) {
+    return SizedBox(
+      height: 140.h,
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16.w),
+        child: PageView.builder(
+          controller: _pageController,
+          itemCount: _banners.length,
+          clipBehavior: Clip.none,
+          onPageChanged: (index) {
+            setState(() {
+              _currentPage = index.toDouble();
+            });
+          },
+          itemBuilder: (context, index) {
+            final distance = (index - _currentPage).abs();
+            final scaleX = 1.0 - (distance * 0.08);
+            final scaleY = 1.0 - (distance * 0.25);
+            final opacity = (1.0 - distance * 0.35).clamp(0.6, 1.0);
             final isActive = _currentPage.round() == index;
-            return AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              margin: EdgeInsets.symmetric(horizontal: 4.w),
-              width: isActive ? 24.w : 8.w,
-              height: 8.h,
-              decoration: BoxDecoration(
-                color: isActive
-                    ? Colors.white
-                    : Colors.white.withValues(alpha: 0.4),
-                borderRadius: BorderRadius.circular(4.r),
+
+            return Transform.translate(
+              offset: Offset((index - _currentPage) * 1.w, 0),
+              child: Transform(
+                alignment: Alignment.center,
+                transform: Matrix4.diagonal3Values(scaleX, scaleY, 1.0),
+                child: Opacity(
+                  opacity: opacity,
+                  child: _buildBanner(_banners[index], isActive),
+                ),
               ),
             );
-          }),
+          },
         ),
-      ],
+      ),
     );
   }
 
-  Widget _buildBanner(_PromoBannerData banner) {
+  Widget _buildBanner(_PromoBannerData banner, bool isActive) {
     return Container(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
       decoration: BoxDecoration(
         color: const Color(0xFFF5EDE0),
         borderRadius: BorderRadius.circular(20.r),
@@ -262,75 +244,96 @@ class _PromoCardWithIndicatorState extends State<_PromoCardWithIndicator> {
           ),
         ],
       ),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 48.w,
-            height: 48.h,
-            decoration: BoxDecoration(
-              color: const Color(0xFF4CAF50).withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(12.r),
-            ),
-            child: Icon(
-              banner.iconData,
-              color: const Color(0xFF4CAF50),
-              size: 28.sp,
-            ),
-          ),
-          SizedBox(width: 16.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  banner.title,
-                  style: TextStyle(
-                    color: const Color(0xFF1A1A1A),
-                    fontSize: 15.sp,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                SizedBox(height: 4.h),
-                Text(
-                  banner.subtitle,
-                  style: TextStyle(
-                    color: Colors.grey.shade700,
-                    fontSize: 13.sp,
-                    fontWeight: FontWeight.w500,
-                    height: 1.3,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            width: 80.w,
-            height: 80.h,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12.r),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12.r),
-              child: Image.asset(
-                banner.imagePath,
-                fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF4CAF50).withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12.r),
+          // Banner content
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      banner.title,
+                      style: TextStyle(
+                        color: const Color(0xFF1A1A1A),
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    child: Icon(
-                      Icons.shopping_basket,
-                      size: 40.sp,
-                      color: const Color(0xFF4CAF50),
+                    SizedBox(height: 4.h),
+                    Text(
+                      banner.subtitle,
+                      style: TextStyle(
+                        color: Colors.grey.shade700,
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.w500,
+                        height: 1.3,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  );
-                },
+                  ],
+                ),
               ),
-            ),
+              SizedBox(width: 12.w),
+              Container(
+                width: 85.w,
+                height: 85.h,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12.r),
+                  child: Image.asset(
+                    banner.imagePath,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF4CAF50).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12.r),
+                        ),
+                        child: Icon(
+                          Icons.shopping_basket,
+                          size: 42.sp,
+                          color: const Color(0xFF4CAF50),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ],
           ),
+          // Indicator at bottom - only show on active card
+          if (isActive) ...[
+            SizedBox(height: 10.h),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(_banners.length, (index) {
+                final isDotActive = _currentPage.round() == index;
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                  margin: EdgeInsets.symmetric(horizontal: 4.w),
+                  width: isDotActive ? 24.w : 8.w,
+                  height: 8.h,
+                  decoration: BoxDecoration(
+                    color: isDotActive
+                        ? const Color(0xFF145A32)
+                        : const Color(0xFF145A32).withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(4.r),
+                  ),
+                );
+              }),
+            ),
+          ],
         ],
       ),
     );
@@ -403,9 +406,15 @@ class _CategoryCarouselState extends State<_CategoryCarousel>
 
   void _startAutoRotation() async {
     // Wait a bit before starting
-    await Future.delayed(const Duration(milliseconds: 300));
+    await Future.delayed(const Duration(milliseconds: 500));
 
     if (!mounted || !_autoRotating) return;
+
+    // Check if position is ready
+    if (!_pageController.hasClients ||
+        !_pageController.position.hasViewportDimension) {
+      return;
+    }
 
     // Animate through categories - stop at a balanced middle position
     // Instead of going to the last icon, stop at index 4-5 for better balance

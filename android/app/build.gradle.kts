@@ -51,13 +51,13 @@ android {
 
     buildTypes {
         release {
-            if (keystorePropertiesFile.exists()) {
-                signingConfig = signingConfigs.getByName("release")
-            }
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
+            // Use debug signing for now (for testing purposes)
+            // TODO: Add proper release signing when ready for production
+            signingConfig = signingConfigs.getByName("debug")
+
+            // Disable minification for easier debugging
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
     }
 }
