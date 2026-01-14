@@ -14,25 +14,28 @@ class ProductCard extends StatefulWidget {
   static void triggerAnimations() {
     _ProductCardState._pageVisitCount++;
   }
+
   const ProductCard({
     super.key,
     required this.product,
     required this.colorScheme,
     this.onAddToCart,
     this.onTap,
+    this.index = 0,
   });
 
   final CategoryProduct product;
   final ColorScheme colorScheme;
   final VoidCallback? onAddToCart;
   final VoidCallback? onTap;
+  final int index;
 
   @override
   State<ProductCard> createState() => _ProductCardState();
 }
 
 class _ProductCardState extends State<ProductCard>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   static int _pageVisitCount = 0;
   int _myPageVisit = -1;
 
@@ -43,6 +46,9 @@ class _ProductCardState extends State<ProductCard>
   late Animation<double> _scaleAnimation;
   late Animation<double> _fadeAnimation;
 
+  // Sweep animation controller
+  late AnimationController _sweepController;
+  late Animation<double> _sweepAnimation;
 
   @override
   void initState() {
@@ -50,21 +56,27 @@ class _ProductCardState extends State<ProductCard>
 
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1200), // Increased duration to see animation better
+      duration: const Duration(
+        milliseconds: 1200,
+      ), // Increased duration to see animation better
     );
 
     _scaleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeOutBack,
-      ),
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOutBack),
     );
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeOut,
-      ),
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    );
+
+    // Sweep animation for light effect (single slow motion sweep)
+    _sweepController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    );
+
+    _sweepAnimation = Tween<double>(begin: -1.0, end: 2.0).animate(
+      CurvedAnimation(parent: _sweepController, curve: Curves.easeInOut),
     );
 
     // Trigger animation on first build
@@ -72,18 +84,26 @@ class _ProductCardState extends State<ProductCard>
       _checkAndStartAnimation();
     });
 
-    // DISABLED: Periodic check causes too many logs
-    // _startPeriodicCheck();
+    // Start periodic check to detect navigation changes
+    _startPeriodicCheck();
   }
 
   void _checkAndStartAnimation() {
-    // Show "Add" button for 2 seconds, then switch to "+" button (no animation)
-    if (_myPageVisit != _pageVisitCount && _cartQuantity == 0 && mounted) {
+    // Only show intro animation for first 6 products (index 0-5)
+    // to reduce render overhead
+    if (_myPageVisit != _pageVisitCount &&
+        _cartQuantity == 0 &&
+        mounted &&
+        widget.index < 6) {
       _myPageVisit = _pageVisitCount;
 
       setState(() {
         _showIntroAnimation = true; // Show full "Add" button
       });
+
+      // Reset and start sweep animation once (slow motion)
+      _sweepController.reset();
+      _sweepController.forward();
 
       // After 2 seconds, switch to "+" button
       Future.delayed(const Duration(seconds: 2), () {
@@ -95,8 +115,6 @@ class _ProductCardState extends State<ProductCard>
       });
     }
   }
-
-
 
   @override
   void didUpdateWidget(ProductCard oldWidget) {
@@ -129,6 +147,7 @@ class _ProductCardState extends State<ProductCard>
   @override
   void dispose() {
     _animationController.dispose();
+    _sweepController.dispose();
     super.dispose();
   }
 
@@ -170,11 +189,14 @@ class _ProductCardState extends State<ProductCard>
 
     // Calculate discount percentage if both prices exist
     String? discountText;
-    if (priceValue != null && originalPriceValue != null && originalPriceValue != priceValue) {
+    if (priceValue != null &&
+        originalPriceValue != null &&
+        originalPriceValue != priceValue) {
       final price = double.tryParse(priceValue);
       final originalPrice = double.tryParse(originalPriceValue);
       if (price != null && originalPrice != null && originalPrice > price) {
-        final discountPercent = ((originalPrice - price) / originalPrice * 100).round();
+        final discountPercent = ((originalPrice - price) / originalPrice * 100)
+            .round();
         discountText = '$discountPercent% OFF';
       }
     }
@@ -183,13 +205,13 @@ class _ProductCardState extends State<ProductCard>
       onTap: widget.onTap,
       child: Container(
         width: 135.w,
+        // constraints: BoxConstraints(
+        //   minHeight: 200.h, // Minimum height to ensure content always fits
+        // ),
         decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.circular(16.r),
-          border: Border.all(
-            color: Colors.grey.shade200,
-            width: 1.2,
-          ),
+          border: Border.all(color: Colors.grey.shade200, width: 1.2),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.04),
@@ -235,14 +257,13 @@ class _ProductCardState extends State<ProductCard>
                           gradient: const LinearGradient(
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
-                            colors: [
-                              Color(0xFFFF8C42),
-                              Color(0xFFFF6B35),
-                            ],
+                            colors: [Color(0xFFFF8C42), Color(0xFFFF6B35)],
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFFFF6B35).withValues(alpha: 0.3),
+                              color: const Color(
+                                0xFFFF6B35,
+                              ).withValues(alpha: 0.3),
                               blurRadius: 4.r,
                               offset: Offset(0, 2.h),
                             ),
@@ -282,7 +303,9 @@ class _ProductCardState extends State<ProductCard>
                       ),
                       child: Center(
                         child: Icon(
-                          _isInWishlist ? Icons.favorite : Icons.favorite_border,
+                          _isInWishlist
+                              ? Icons.favorite
+                              : Icons.favorite_border,
                           size: 19.sp,
                           color: _isInWishlist
                               ? const Color(0xFFFF6B6B)
@@ -299,7 +322,16 @@ class _ProductCardState extends State<ProductCard>
             Stack(
               children: [
                 Padding(
-                  padding: EdgeInsets.fromLTRB(8.w, 4.h, 8.w, 5.h),
+                  padding: EdgeInsets.fromLTRB(
+                    8.w,
+                    4.h,
+                    _cartQuantity > 0
+                        ? 1.w  // Quantity selector: minimal right padding
+                        : _showIntroAnimation
+                            ? 1.w  // Full "Add" button: minimal right padding
+                            : 9.w, // Small "+" button: more right padding
+                    3.h,
+                  ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -331,11 +363,12 @@ class _ProductCardState extends State<ProductCard>
                       SizedBox(height: 3.h),
                       // Price section with button overlay using Stack
                       SizedBox(
-                        height: 35.h,
+                        height: 36.h,
                         child: Stack(
                           children: [
                             // Price takes full width - never truncated
                             Positioned(
+                              // top: 1,
                               left: 0,
                               right: 0,
                               bottom: 0,
@@ -354,7 +387,8 @@ class _ProductCardState extends State<ProductCard>
                                         color: const Color(0xFF25A63E),
                                         letterSpacing: -0.2,
                                       ),
-                                      maxLines: 1,
+                                      maxLines: 2,
+                                      softWrap: true,
                                       overflow: TextOverflow.visible,
                                     ),
                                   // Original price (strikethrough) - shown below
@@ -383,7 +417,7 @@ class _ProductCardState extends State<ProductCard>
                             // Button positioned at bottom-right
                             Positioned(
                               bottom: 0,
-                              right: 0.w,
+                              right: -1.w,
                               child: _cartQuantity > 0
                                   ? _buildQuantitySelector()
                                   : _buildAnimatedAddButton(inStock),
@@ -405,11 +439,11 @@ class _ProductCardState extends State<ProductCard>
   Widget _buildQuantitySelector() {
     return Container(
       height: 26.h,
-      padding: EdgeInsets.symmetric(horizontal: 0.w),
+      // padding: EdgeInsets.symmetric(horizontal: .w),
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border.all(color: Colors.grey.shade200),
-        borderRadius: BorderRadius.all(Radius.circular(30.r))
+        borderRadius: BorderRadius.all(Radius.circular(30.r)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -423,11 +457,7 @@ class _ProductCardState extends State<ProductCard>
                 color: Color(0xFF25A63E),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.remove,
-                color: Colors.white,
-                size: 12,
-              ),
+              child: const Icon(Icons.remove, color: Colors.white, size: 12),
             ),
           ),
           Padding(
@@ -450,11 +480,7 @@ class _ProductCardState extends State<ProductCard>
                 color: Color(0xFF25A63E),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.add,
-                color: Colors.white,
-                size: 12,
-              ),
+              child: const Icon(Icons.add, color: Colors.white, size: 12),
             ),
           ),
         ],
@@ -463,67 +489,165 @@ class _ProductCardState extends State<ProductCard>
   }
 
   Widget _buildAnimatedAddButton(bool inStock) {
-    // No animation - just switch between buttons directly
-    if (_showIntroAnimation) {
-      return _buildIntroAddButton(inStock); // Show full "Add" button
-    } else {
-      return _buildAddToCartButton(inStock); // Show "+" button
-    }
+    // Ultra-smooth fade and scale transition between buttons
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 350),
+      switchInCurve: Curves.easeOutCubic,
+      switchOutCurve: Curves.easeInCubic,
+      transitionBuilder: (Widget child, Animation<double> animation) {
+        return FadeTransition(
+          opacity: animation,
+          child: ScaleTransition(
+            scale: Tween<double>(begin: 0.9, end: 1.0).animate(
+              CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOutCubic,
+              ),
+            ),
+            child: child,
+          ),
+        );
+      },
+      child: _showIntroAnimation
+          ? _buildIntroAddButton(inStock)
+          : _buildAddToCartButton(inStock),
+    );
   }
 
   Widget _buildIntroAddButton(bool inStock) {
     return GestureDetector(
+      key: const ValueKey('intro_add_button'),
       onTap: inStock ? _handleAddToCart : null,
-      child: Container(
-        height: 30.h,
-        padding: EdgeInsets.symmetric(horizontal: 14.w),
-        decoration: BoxDecoration(
-          gradient: inStock
-              ? const LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Color(0xFF2BBD4E),
-                    Color(0xFF25A63E),
-                  ],
-                )
-              : null,
-          color: inStock ? null : Colors.grey.shade400,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(6.r),
-            topRight: Radius.circular(6.r),
-            bottomLeft: Radius.circular(6.r),
-            bottomRight: Radius.circular(16.r), // Match card's corner
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: (inStock ? const Color(0xFF25A63E) : Colors.grey.shade400)
-                  .withValues(alpha: 0.35),
-              blurRadius: 10.r,
-              offset: Offset(0, 3.h),
-            ),
-          ],
+      child: Material(
+        elevation: 4,
+        shadowColor: (inStock ? const Color(0xFF25A63E) : Colors.grey.shade400)
+            .withValues(alpha: 0.35),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(6.r),
+          topRight: Radius.circular(6.r),
+          bottomLeft: Radius.circular(6.r),
+          bottomRight: Radius.circular(16.r),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.shopping_bag_outlined,
-              size: 15.sp,
-              color: Colors.white,
-            ),
-            SizedBox(width: 7.w),
-            Text(
-              'Add',
-              style: TextStyle(
-                fontSize: 13.sp,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-                letterSpacing: 0.3,
+        child: AnimatedBuilder(
+          animation: _sweepAnimation,
+          builder: (context, child) {
+            return ClipRRect(
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(6.r),
+                topRight: Radius.circular(6.r),
+                bottomLeft: Radius.circular(6.r),
+                bottomRight: Radius.circular(16.r),
               ),
-            ),
-          ],
+              child: Container(
+                height: 30.h,
+                padding: EdgeInsets.symmetric(horizontal: 14.w),
+                decoration: BoxDecoration(
+                  gradient: inStock
+                      ? const LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [Color(0xFF2BBD4E), Color(0xFF25A63E)],
+                        )
+                      : null,
+                  color: inStock ? null : Colors.grey.shade400,
+                ),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    // Diagonal light sweep effect with multiple beams and blur
+                    if (inStock)
+                      Positioned(
+                        left: -50.w,
+                        right: -50.w,
+                        top: -20.h,
+                        bottom: -20.h,
+                        child: Transform.translate(
+                          offset: Offset(_sweepAnimation.value * 150.w, 0),
+                          child: Transform.rotate(
+                            angle: -0.5, // Diagonal angle (\ direction)
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.centerLeft,
+                                  end: Alignment.centerRight,
+                                  colors: [
+                                    Colors.transparent,
+                                    // First beam (brighter)
+                                    Colors.white.withValues(alpha: 0.0),
+                                    Colors.white.withValues(alpha: 0.35),
+                                    Colors.white.withValues(alpha: 0.6),
+                                    Colors.white.withValues(alpha: 0.35),
+                                    Colors.white.withValues(alpha: 0.0),
+                                    // Gap
+                                    Colors.transparent,
+                                    Colors.transparent,
+                                    // Second beam (softer)
+                                    Colors.white.withValues(alpha: 0.0),
+                                    Colors.white.withValues(alpha: 0.2),
+                                    Colors.white.withValues(alpha: 0.4),
+                                    Colors.white.withValues(alpha: 0.2),
+                                    Colors.white.withValues(alpha: 0.0),
+                                    Colors.transparent,
+                                  ],
+                                  stops: const [
+                                    0.0,
+                                    // First beam
+                                    0.12,
+                                    0.18,
+                                    0.22,
+                                    0.26,
+                                    0.32,
+                                    // Gap
+                                    0.38,
+                                    0.52,
+                                    // Second beam
+                                    0.58,
+                                    0.64,
+                                    0.68,
+                                    0.72,
+                                    0.78,
+                                    1.0,
+                                  ],
+                                ),
+                                boxShadow: [
+                                  // Blur/glow effect
+                                  BoxShadow(
+                                    color: Colors.white.withValues(alpha: 0.3),
+                                    blurRadius: 8.r,
+                                    spreadRadius: 2.r,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    // Button content
+                    Center(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.shopping_bag_outlined,
+                              size: 15.sp, color: Colors.white),
+                          SizedBox(width: 7.w),
+                          Text(
+                            'Add',
+                            style: TextStyle(
+                              fontSize: 13.sp,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -531,43 +655,39 @@ class _ProductCardState extends State<ProductCard>
 
   Widget _buildAddToCartButton(bool inStock) {
     return GestureDetector(
+      key: const ValueKey('add_to_cart_button'),
       onTap: inStock ? _handleAddToCart : null,
-      child: Container(
-        width: 30.w,
-        height: 30.h,
-        decoration: BoxDecoration(
-          gradient: inStock
-              ? const LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Color(0xFF2BBD4E),
-                    Color(0xFF25A63E),
-                  ],
-                )
-              : null,
-          color: inStock ? null : Colors.grey.shade400,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(6.r),
-            topRight: Radius.circular(6.r),
-            bottomLeft: Radius.circular(6.r),
-            bottomRight: Radius.circular(16.r), // Match card's corner
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: (inStock ? const Color(0xFF25A63E) : Colors.grey.shade400)
-                  .withValues(alpha: 0.35),
-              blurRadius: 10.r,
-              offset: Offset(0, 3.h),
-            ),
-          ],
+      child: Material(
+        elevation: 4,
+        shadowColor: (inStock ? const Color(0xFF25A63E) : Colors.grey.shade400)
+            .withValues(alpha: 0.35),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(6.r),
+          topRight: Radius.circular(6.r),
+          bottomLeft: Radius.circular(6.r),
+          bottomRight: Radius.circular(16.r), // Match card's corner
         ),
-        child: Center(
-          child: Icon(
-            Icons.add,
-            size: 22.sp,
-            color: Colors.white,
-            weight: 700,
+        child: Container(
+          width: 30.w,
+          height: 30.h,
+          decoration: BoxDecoration(
+            gradient: inStock
+                ? const LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Color(0xFF2BBD4E), Color(0xFF25A63E)],
+                  )
+                : null,
+            color: inStock ? null : Colors.grey.shade400,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(6.r),
+              topRight: Radius.circular(6.r),
+              bottomLeft: Radius.circular(6.r),
+              bottomRight: Radius.circular(16.r), // Match card's corner
+            ),
+          ),
+          child: Center(
+            child: Icon(Icons.add, size: 22.sp, color: Colors.white, weight: 700),
           ),
         ),
       ),

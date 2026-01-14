@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import '../../../../../app/theme/colors.dart';
 import '../../../../../core/widgets/app_text.dart';
 import '../../../models/category_item.dart';
@@ -141,18 +142,28 @@ class ProductGridState extends State<ProductGrid> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    int globalProductIndex = 0;
 
     return CustomScrollView(
       controller: _scrollController,
       slivers: [
         for (var i = 0; i < widget.categories.length; i++) ...[
-          _CategorySectionBuilder(
-            sectionKey: _sectionKeys[i],
-            category: widget.categories[i],
-            isFirst: i == 0,
-            colorScheme: colorScheme,
-            onAddToCart: widget.onAddToCart,
-            onProductTap: widget.onProductTap,
+          Builder(
+            builder: (context) {
+              final startIndex = globalProductIndex;
+              final products = DummyData.getProductsForCategory(widget.categories[i].id);
+              globalProductIndex += products.length;
+
+              return _CategorySectionBuilder(
+                sectionKey: _sectionKeys[i],
+                category: widget.categories[i],
+                isFirst: i == 0,
+                colorScheme: colorScheme,
+                onAddToCart: widget.onAddToCart,
+                onProductTap: widget.onProductTap,
+                startIndex: startIndex,
+              );
+            },
           ),
         ],
       ],
@@ -168,6 +179,7 @@ class _CategorySectionBuilder extends StatelessWidget {
     required this.colorScheme,
     this.onAddToCart,
     this.onProductTap,
+    required this.startIndex,
   });
 
   final GlobalKey sectionKey;
@@ -176,6 +188,7 @@ class _CategorySectionBuilder extends StatelessWidget {
   final ColorScheme colorScheme;
   final ValueChanged<CategoryProduct>? onAddToCart;
   final ValueChanged<CategoryProduct>? onProductTap;
+  final int startIndex;
 
   @override
   Widget build(BuildContext context) {
@@ -221,6 +234,7 @@ class _CategorySectionBuilder extends StatelessWidget {
             colorScheme: colorScheme,
             onAddToCart: onAddToCart,
             onProductTap: onProductTap,
+            startIndex: startIndex,
           ),
         ),
       ],
@@ -234,12 +248,14 @@ class _CategoryProductsSliver extends StatelessWidget {
     required this.colorScheme,
     this.onAddToCart,
     this.onProductTap,
+    required this.startIndex,
   });
 
   final List<CategoryProduct> products;
   final ColorScheme colorScheme;
   final ValueChanged<CategoryProduct>? onAddToCart;
   final ValueChanged<CategoryProduct>? onProductTap;
+  final int startIndex;
 
   @override
   Widget build(BuildContext context) {
@@ -252,7 +268,7 @@ class _CategoryProductsSliver extends StatelessWidget {
         crossAxisCount: 2,
         crossAxisSpacing: 3.5.w,
         mainAxisSpacing: 5.h,
-        mainAxisExtent: 175.h,
+        mainAxisExtent: 182.h, // Increased to fit all content including prices
       ),
       delegate: SliverChildBuilderDelegate(
         (context, index) {
@@ -263,6 +279,7 @@ class _CategoryProductsSliver extends StatelessWidget {
             colorScheme: colorScheme,
             onAddToCart: () => onAddToCart?.call(product),
             onTap: () => onProductTap?.call(product),
+            index: startIndex + index,
           );
         },
         childCount: products.length,
