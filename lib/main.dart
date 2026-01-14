@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'features/home/presentation/screens/home_screen_complete.dart';
+import 'features/newcart/presentation/navigation/main_navigation_shell.dart';
 
 // Global container to access ProviderContainer
 // late ProviderContainer _container;
@@ -42,7 +43,7 @@ class MyApp extends StatelessWidget {
       splitScreenMode: true,
       builder: (context, child) {
         return const MaterialApp(
-          home: HomeScreenComplete(),
+          home: MainNavigationShell(),
           debugShowCheckedModeBanner: false,
         
         );

@@ -6,8 +6,12 @@ export 'models/category_item.dart';
 export 'models/category_product.dart';
 export 'models/dummy_data.dart';
 
-// Screen
+// Navigation
+export 'presentation/navigation/main_navigation_shell.dart';
+
+// Screens
 export 'presentation/screen/category_screen.dart';
+export 'presentation/screens/home_screen_content.dart';
 
 // Components
 export 'presentation/components/header/header.dart';
