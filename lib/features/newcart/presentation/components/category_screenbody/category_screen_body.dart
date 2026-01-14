@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import '../../../../../app/theme/app_spacing.dart';
 import '../../../models/category_item.dart';
+import '../product_grid/product_grid.dart';
 import '../views/category_empty_view.dart';
 import '../widgets/category_list.dart';
 import '../widgets/filter_bar.dart';
-import '../product_grid/product_grid.dart';
 
 /// Main category screen layout that combines:
 /// - Left sidebar: Category list for navigation
@@ -12,7 +14,7 @@ import '../product_grid/product_grid.dart';
 ///
 /// Static version - no backend or state management
 class CategoryScreenBody extends StatefulWidget {
-  static const List<String> _filters = ['Brand', 'Price Drop', 'Popular'];
+  static const List<String> _filters = ['Price Drop', 'Popular', 'New Arrivals'];
 
   final List<CategoryItem> categories;
   final int selectedCategoryIndex;
@@ -55,7 +57,7 @@ class CategoryScreenBodyState extends State<CategoryScreenBody> {
     return Row(
       children: [
         Expanded(
-          flex: 1,
+          flex: 2,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -67,11 +69,15 @@ class CategoryScreenBodyState extends State<CategoryScreenBody> {
                   _productGridKey.currentState?.scrollToCategory(index);
                 },
               ),
+              Container(
+                width: 5.w,
+                color: const Color(0xFFE3F4E3)
+              )
             ],
           ),
         ),
         Expanded(
-          flex: 2,
+          flex: 5,
           child: Column(
             children: [
               AppSpacing.h4,

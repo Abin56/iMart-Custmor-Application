@@ -395,7 +395,7 @@ class _ProductCardState extends State<ProductCard>
                                   if (originalPriceValue != null &&
                                       priceValue != null &&
                                       originalPriceValue != priceValue) ...[
-                                    SizedBox(height: 2.h),
+                                    SizedBox(height: 1.h),
                                     Text(
                                       '$_rupeeSymbol $originalPriceValue',
                                       style: TextStyle(
@@ -409,15 +409,17 @@ class _ProductCardState extends State<ProductCard>
                                       maxLines: 1,
                                       overflow: TextOverflow.visible,
                                     ),
+                                       SizedBox(height: 4.h),
                                   ],
                                 ],
                               ),
                             ),
-
+  //  SizedBox(height: 4.h),
                             // Button positioned at bottom-right
                             Positioned(
-                              bottom: 0,
-                              right: -1.w,
+                              // top: 12.h,
+                              bottom: 0.h,
+                              right: 0.w,
                               child: _cartQuantity > 0
                                   ? _buildQuantitySelector()
                                   : _buildAnimatedAddButton(inStock),
@@ -524,7 +526,6 @@ class _ProductCardState extends State<ProductCard>
             .withValues(alpha: 0.35),
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(6.r),
-          topRight: Radius.circular(6.r),
           bottomLeft: Radius.circular(6.r),
           bottomRight: Radius.circular(16.r),
         ),
@@ -534,7 +535,6 @@ class _ProductCardState extends State<ProductCard>
             return ClipRRect(
               borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(6.r),
-                topRight: Radius.circular(6.r),
                 bottomLeft: Radius.circular(6.r),
                 bottomRight: Radius.circular(16.r),
               ),

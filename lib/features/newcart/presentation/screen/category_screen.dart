@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import '../../../../app/theme/colors.dart';
+import '../../../../core/widgets/app_text.dart';
 import '../../models/category_item.dart';
 import '../../models/dummy_data.dart';
-import '../components/header/header.dart';
 import '../components/category_screenbody/category_screen_body.dart';
 
 /// Static Category Screen - No backend, Riverpod, or API calls
@@ -55,31 +56,34 @@ class _CategoryScreenState extends State<CategoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
-      color: AppColors.green10,
+      color: AppColors.white,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(height: 42.h, color: AppColors.green60),
-          Header(
-            colorScheme: colorScheme,
-            onCategoryTap: () {
-              // Handle category icon tap (static - no navigation)
-            },
-            onSearchTap: () {
-              // Handle search tap (static - no navigation)
-            },
+     // Status bar space
+          Container(height: 42.h, color: const Color(0xFF0D5C2E)),
+          // Header
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(vertical: 20.h, horizontal: 20.w),
+            decoration: const BoxDecoration(color: Color(0xFF0D5C2E)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppText(
+                  text: 'Categories',
+                  fontSize: 24.sp,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ],
+            ),
           ),
           Expanded(
             child: Container(
-              decoration: const BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage('assets/images/background_graphics.png'),
-                  fit: BoxFit.cover,
-                ),
-              ),
+              decoration: const BoxDecoration(),
               child: CategoryScreenBody(
                 key: _bodyKey,
                 categories: _categories,

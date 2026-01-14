@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../components/widgets/product_card.dart';
 import '../screen/category_screen.dart';
+import '../screen/wishlist_screen.dart';
 import '../screens/home_screen_content.dart';
 
 /// Main navigation shell with glassmorphism bottom navigation bar
@@ -23,7 +24,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
     //  const CategoryScreen(),
     const HomeScreenContent(),
     const CategoryScreen(),
-    const _WishlistPlaceholder(),
+  const WishlistScreen(),
     const _CartPlaceholder(),
   ];
 

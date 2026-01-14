@@ -6,6 +6,7 @@ import '../../../../../core/widgets/app_text.dart';
 import '../../../models/category_item.dart';
 import '../../../models/category_product.dart';
 import '../../../models/dummy_data.dart';
+import '../../screens/product_detail_screen.dart';
 import '../widgets/product_card.dart';
 
 /// Displays products in a grid with category headings
@@ -228,7 +229,7 @@ class _CategorySectionBuilder extends StatelessWidget {
           ),
         ),
         SliverPadding(
-          padding: EdgeInsets.symmetric(horizontal: 1.w),
+          padding: EdgeInsets.symmetric(horizontal: 5.w),
           sliver: _CategoryProductsSliver(
             products: products,
             colorScheme: colorScheme,
@@ -266,8 +267,8 @@ class _CategoryProductsSliver extends StatelessWidget {
     return SliverGrid(
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        crossAxisSpacing: 3.5.w,
-        mainAxisSpacing: 5.h,
+        crossAxisSpacing: 6.w,
+        mainAxisSpacing: 6.h,
         mainAxisExtent: 182.h, // Increased to fit all content including prices
       ),
       delegate: SliverChildBuilderDelegate(
@@ -278,7 +279,15 @@ class _CategoryProductsSliver extends StatelessWidget {
             product: product,
             colorScheme: colorScheme,
             onAddToCart: () => onAddToCart?.call(product),
-            onTap: () => onProductTap?.call(product),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProductDetailScreen(product: product),
+                ),
+              );
+              onProductTap?.call(product);
+            },
             index: startIndex + index,
           );
         },
