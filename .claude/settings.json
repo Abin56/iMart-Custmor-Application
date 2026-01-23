@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/anjel/Desktop/iMart/imart/lib/features/**)",
+      "Bash(done)"
+    ]
+  }
+}

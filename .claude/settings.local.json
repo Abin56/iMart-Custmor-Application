@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(flutter analyze:*)",
+      "Bash(dart run build_runner:*)",
+      "Bash(findstr:*)",
+      "Bash(dart run:*)",
+      "Bash(flutter pub run:*)",
+      "Bash(git add:*)",
+      "Bash(bash:*)",
+      "Bash(flutter run:*)",
+      "Bash(timeout:*)",
+      "Bash(flutter clean:*)",
+      "Bash(flutter pub get:*)",
+      "Bash(flutter devices:*)",
+      "Bash(tree:*)",
+      "Bash(Select-String \"unnecessary\")",
+      "Bash(python:*)",
+      "Bash(git commit:*)",
+      "Bash(grep:*)",
+      "Bash(git checkout:*)",
+      "Bash(find lib -name \"*.dart\" -exec sed -i \"/^import ''package:flutter\\\\/foundation.dart'';$/d\" {} ;)",
+      "Bash(if [ -f \"scripts/pre_commit_check.sh\" ])",
+      "Bash(then bash scripts/pre_commit_check.sh)",
+      "Bash(elif [ -f \"pre_commit_check.sh\" ])",
+      "Bash(then bash pre_commit_check.sh)",
+      "Bash(else echo \"No pre-commit script found\")",
+      "Bash(fi)"
+    ]
+  }
+}
