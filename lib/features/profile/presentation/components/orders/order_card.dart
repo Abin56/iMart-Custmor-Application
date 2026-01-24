@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -629,13 +631,18 @@ class _RateButton extends StatelessWidget {
 }
 
 /// Reorder button widget
-class _ReorderButton extends ConsumerWidget {
+class _ReorderButton extends ConsumerStatefulWidget {
   const _ReorderButton({required this.orderId});
 
   final int orderId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_ReorderButton> createState() => _ReorderButtonState();
+}
+
+class _ReorderButtonState extends ConsumerState<_ReorderButton> {
+  @override
+  Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => _handleReorder(context, ref),
       child: Container(
@@ -666,14 +673,105 @@ class _ReorderButton extends ConsumerWidget {
   }
 
   Future<void> _handleReorder(BuildContext context, WidgetRef ref) async {
-    final success = await ref
-        .read(orderProvider.notifier)
-        .reorder(orderId: orderId);
+    // Show loading dialog with progress
+    final progressNotifier = ValueNotifier<double>(0.0);
+
+    unawaited(
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => PopScope(
+          canPop: false,
+          child: Center(
+            child: Container(
+              padding: EdgeInsets.all(24.w),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16.r),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Circular progress with percentage
+                  SizedBox(
+                    width: 80.w,
+                    height: 80.h,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        ValueListenableBuilder<double>(
+                          valueListenable: progressNotifier,
+                          builder: (context, progress, child) {
+                            return CircularProgressIndicator(
+                              value: progress,
+                              strokeWidth: 6.w,
+                              valueColor: const AlwaysStoppedAnimation<Color>(
+                                Color(0xFF25A63E),
+                              ),
+                              backgroundColor: Colors.grey.shade200,
+                            );
+                          },
+                        ),
+                        ValueListenableBuilder<double>(
+                          valueListenable: progressNotifier,
+                          builder: (context, progress, child) {
+                            return Text(
+                              '${(progress * 100).toInt()}%',
+                              style: TextStyle(
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFF25A63E),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 16.h),
+                  Text(
+                    'Adding items to cart...',
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  SizedBox(height: 8.h),
+                  Text(
+                    'Please wait',
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final success = await ref.read(orderProvider.notifier).reorderWithProgress(
+          orderId: widget.orderId,
+          onProgress: (current, total) {
+            progressNotifier.value = current / total;
+          },
+        );
+
+    // Close loading dialog
+    if (context.mounted) {
+      Navigator.of(context).pop();
+    }
+
+    progressNotifier.dispose();
 
     if (!context.mounted) return;
 
     if (success) {
-      // Refresh cart to get updated items
+      // Refresh cart to get updated items and stock info
       await ref
           .read(cartControllerProvider.notifier)
           .loadCart(forceRefresh: true);

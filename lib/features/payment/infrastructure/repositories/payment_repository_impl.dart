@@ -28,9 +28,12 @@ class PaymentRepositoryImpl implements PaymentRepository {
       if (e.response?.statusCode == 403) {
         throw Exception('Authentication required. Please login again.');
       }
-      throw Exception(
-        e.response?.data?['detail'] ?? 'Failed to initiate payment',
-      );
+      // Check for both 'error' and 'detail' fields in response
+      final errorMessage =
+          e.response?.data?['error'] ??
+          e.response?.data?['detail'] ??
+          'Failed to initiate payment';
+      throw Exception(errorMessage);
     } catch (e) {
       throw Exception('Failed to initiate payment: $e');
     }

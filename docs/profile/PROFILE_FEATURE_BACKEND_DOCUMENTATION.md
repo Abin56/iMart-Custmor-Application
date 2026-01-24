@@ -44,7 +44,7 @@ The Profile feature implements a **production-ready user profile management syst
 
 ### Base URL
 ```
-http://156.67.104.149:8080/api/auth/v1/
+http://156.67.104.149:8012/api/auth/v1/
 ```
 
 ### Endpoint Summary
@@ -70,7 +70,7 @@ If-Modified-Since: Mon, 23 May 2024 22:22:01 GMT  (optional)
 
 **Request:**
 ```http
-GET http://156.67.104.149:8080/api/auth/v1/profile/
+GET http://156.67.104.149:8012/api/auth/v1/profile/
 If-Modified-Since: Mon, 23 May 2024 22:22:01 GMT
 ```
 
@@ -142,7 +142,7 @@ Cookie: sessionid=<session_id>
 
 **Request:**
 ```http
-PATCH http://156.67.104.149:8080/api/auth/v1/profile/
+PATCH http://156.67.104.149:8012/api/auth/v1/profile/
 Content-Type: application/json
 
 {
@@ -212,7 +212,7 @@ Cookie: sessionid=<session_id>
 
 **Request:**
 ```http
-POST http://156.67.104.149:8080/api/auth/v1/delete-account/
+POST http://156.67.104.149:8012/api/auth/v1/delete-account/
 ```
 
 **Response (200 OK or 204 No Content):**
@@ -1785,7 +1785,7 @@ await logout();
 **Request:**
 ```http
 GET /api/auth/v1/profile/ HTTP/1.1
-Host: 156.67.104.149:8080
+Host: 156.67.104.149:8012
 Cookie: sessionid=xyz123abc
 X-CSRFToken: abc456def
 ```
@@ -1817,7 +1817,7 @@ Last-Modified: Thu, 17 Jan 2026 10:00:00 GMT
 **Request:**
 ```http
 GET /api/auth/v1/profile/ HTTP/1.1
-Host: 156.67.104.149:8080
+Host: 156.67.104.149:8012
 Cookie: sessionid=xyz123abc
 X-CSRFToken: abc456def
 If-Modified-Since: Thu, 17 Jan 2026 10:00:00 GMT
@@ -1853,7 +1853,7 @@ Last-Modified: Fri, 18 Jan 2026 14:30:00 GMT
 **Request:**
 ```http
 PATCH /api/auth/v1/profile/ HTTP/1.1
-Host: 156.67.104.149:8080
+Host: 156.67.104.149:8012
 Content-Type: application/json
 Cookie: sessionid=xyz123abc
 X-CSRFToken: abc456def
@@ -1891,7 +1891,7 @@ Content-Type: application/json
 **Request:**
 ```http
 POST /api/auth/v1/delete-account/ HTTP/1.1
-Host: 156.67.104.149:8080
+Host: 156.67.104.149:8012
 Cookie: sessionid=xyz123abc
 X-CSRFToken: abc456def
 ```
@@ -3161,4 +3161,4 @@ class ProfileRepository(
 
 **Last Updated:** 2026-01-17
 **Version:** 1.0
-**Backend API:** Django REST at `http://156.67.104.149:8080`
+**Backend API:** Django REST at `http://156.67.104.149:8012`

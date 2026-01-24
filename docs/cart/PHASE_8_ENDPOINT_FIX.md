@@ -126,11 +126,11 @@ flutter run
 
 ```dart
 class AppConfig {
-  static const String apiBaseUrl = 'http://156.67.104.149:8080';
+  static const String apiBaseUrl = 'http://156.67.104.149:8012';
 
   // All endpoints are relative to this base URL
   // Example: '/api/order/v1/checkout-lines/'
-  // Full URL: 'http://156.67.104.149:8080/api/order/v1/checkout-lines/'
+  // Full URL: 'http://156.67.104.149:8012/api/order/v1/checkout-lines/'
 }
 ```
 
@@ -205,7 +205,7 @@ try {
 All endpoints follow the structure documented in:
 `docs/cart/CART_CHECKOUT_BACKEND_DOCUMENTATION.md`
 
-**Base URL**: `http://156.67.104.149:8080`
+**Base URL**: `http://156.67.104.149:8012`
 
 **Cart Endpoints**:
 - GET `/api/order/v1/checkout-lines/` - Fetch cart

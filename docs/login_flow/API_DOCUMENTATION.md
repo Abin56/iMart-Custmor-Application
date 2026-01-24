@@ -32,9 +32,9 @@ This Flutter grocery app uses a **session-based authentication system** with sup
 
 ```dart
 class AppConfig {
-  static const String apiBaseUrl = 'http://156.67.104.149:8080';
+  static const String apiBaseUrl = 'http://156.67.104.149:8012';
   static const String cdnBaseUrl = 'https://grocery-application.b-cdn.net';
-  static const String websocketUrl = 'http://156.67.104.149:8080';
+  static const String websocketUrl = 'http://156.67.104.149:8012';
 
   static const Duration connectionTimeout = Duration(seconds: 30);
   static const Duration receiveTimeout = Duration(seconds: 30);
@@ -211,7 +211,7 @@ class CategoryRemoteDataSource {
 
 **HTTP Request:**
 ```http
-GET http://156.67.104.149:8080/api/products/v1/category/?page=1
+GET http://156.67.104.149:8012/api/products/v1/category/?page=1
 Content-Type: application/json
 dev: 2  (if guest mode)
 X-CSRFToken: <token>  (if authenticated)
@@ -257,7 +257,7 @@ Future<CheckoutLineDto> addToCart({
 
 **HTTP Request:**
 ```http
-POST http://156.67.104.149:8080/api/order/v1/checkout-lines/
+POST http://156.67.104.149:8012/api/order/v1/checkout-lines/
 Content-Type: application/json
 X-CSRFToken: <token>
 
@@ -301,7 +301,7 @@ Future<CheckoutLineDto> updateQuantity({
 
 **HTTP Request:**
 ```http
-PATCH http://156.67.104.149:8080/api/order/v1/checkout-lines/1/
+PATCH http://156.67.104.149:8012/api/order/v1/checkout-lines/1/
 Content-Type: application/json
 X-CSRFToken: <token>
 
@@ -323,7 +323,7 @@ Future<void> deleteCheckoutLine(int lineId) async {
 
 **HTTP Request:**
 ```http
-DELETE http://156.67.104.149:8080/api/order/v1/checkout-lines/1/
+DELETE http://156.67.104.149:8012/api/order/v1/checkout-lines/1/
 X-CSRFToken: <token>
 ```
 
@@ -367,7 +367,7 @@ Future<ProductDetailRemoteResponse?> fetchProductDetail({
 
 **HTTP Request:**
 ```http
-GET http://156.67.104.149:8080/api/products/v1/variants/42/
+GET http://156.67.104.149:8012/api/products/v1/variants/42/
 If-None-Match: "abc123xyz"
 If-Modified-Since: Wed, 15 Jan 2025 10:00:00 GMT
 ```
@@ -583,7 +583,7 @@ Future<UserEntity> login({
 
 **HTTP Request:**
 ```http
-POST http://156.67.104.149:8080/api/auth/v1/signin/
+POST http://156.67.104.149:8012/api/auth/v1/signin/
 Content-Type: application/json
 
 {
@@ -775,7 +775,7 @@ Future<CheckoutLineDto> addToCart({
 
 **HTTP Request:**
 ```http
-POST http://156.67.104.149:8080/api/order/v1/checkout-lines/
+POST http://156.67.104.149:8012/api/order/v1/checkout-lines/
 Content-Type: application/json
 X-CSRFToken: abc456def
 Cookie: sessionid=xyz123abc
@@ -904,4 +904,4 @@ Future<void> logout() async {
 
 **Generated:** 2026-01-16
 **App Version:** Based on codebase analysis
-**Backend API:** Django REST Framework at `http://156.67.104.149:8080`
+**Backend API:** Django REST Framework at `http://156.67.104.149:8012`

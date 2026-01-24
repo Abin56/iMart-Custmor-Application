@@ -358,11 +358,11 @@ class ProfileRepositoryImpl implements ProfileRepository {
   }
 
   @override
-  Future<Either<Failure, void>> reorder({required int orderId}) async {
+  Future<Either<Failure, Map<String, dynamic>>> reorder({required int orderId}) async {
     try {
-      await _api.reorder(orderId: orderId);
+      final result = await _api.reorder(orderId: orderId);
 
-      return const Right(null);
+      return Right(result);
     } catch (e) {
       return Left(mapDioError(e));
     }

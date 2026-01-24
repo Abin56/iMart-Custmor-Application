@@ -425,14 +425,18 @@ class ProfileApi {
     }
   }
 
-  /// Reorder - creates new order with same items
-  Future<void> reorder({required int orderId}) async {
+  /// Reorder - adds items from an existing order to the user's checkout
+  /// Returns: {"message": "...", "checkout_id": 1}
+  Future<Map<String, dynamic>> reorder({required int orderId}) async {
     try {
       final res = await _dio.post(ProfileEndpoints.reorder(orderId));
 
-      if (res.statusCode != 201 && res.statusCode != 200) {
+      if (res.statusCode != 200) {
         throw Exception('Reorder failed: ${res.statusCode}');
       }
+
+      final data = res.data as Map<String, dynamic>;
+      return data;
     } catch (e) {
       final failure = mapDioError(e);
       throw Exception(failure.message);

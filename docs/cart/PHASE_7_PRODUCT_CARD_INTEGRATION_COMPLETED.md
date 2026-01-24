@@ -216,7 +216,7 @@ Text(
 
 ### Add to Cart Request
 ```http
-POST http://156.67.104.149:8080/api/order/v1/checkout-lines/
+POST http://156.67.104.149:8012/api/order/v1/checkout-lines/
 Content-Type: application/json
 
 {
@@ -227,7 +227,7 @@ Content-Type: application/json
 
 ### Update Quantity Request (Delta-Based)
 ```http
-PATCH http://156.67.104.149:8080/api/order/v1/checkout-lines/{line_id}/
+PATCH http://156.67.104.149:8012/api/order/v1/checkout-lines/{line_id}/
 Content-Type: application/json
 
 {

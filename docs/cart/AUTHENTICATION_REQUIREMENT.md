@@ -18,7 +18,7 @@
 Dio dio(DioRef ref) {
   return Dio(
     BaseOptions(
-      baseUrl: 'http://156.67.104.149:8080',
+      baseUrl: 'http://156.67.104.149:8012',
       connectTimeout: const Duration(seconds: 10),
       receiveTimeout: const Duration(seconds: 10),
     ),
@@ -123,7 +123,7 @@ All cart endpoints require authentication:
 
 ## API Configuration
 
-**Base URL**: `http://156.67.104.149:8080` (configured in `AppConfig.apiBaseUrl`)
+**Base URL**: `http://156.67.104.149:8012` (configured in `AppConfig.apiBaseUrl`)
 
 **Required Headers** (automatically added by ApiClient):
 ```http
@@ -145,7 +145,7 @@ Content-Type: application/json
 
 2. **Check cookie jar**:
    ```dart
-   final cookies = await cookieJar.loadForRequest(Uri.parse('http://156.67.104.149:8080'));
+   final cookies = await cookieJar.loadForRequest(Uri.parse('http://156.67.104.149:8012'));
    print('Cookies: $cookies');
    // Should include sessionid cookie
    ```
@@ -153,7 +153,7 @@ Content-Type: application/json
 3. **Check API base URL**:
    ```dart
    print('API URL: ${AppConfig.apiBaseUrl}');
-   // Should be: http://156.67.104.149:8080
+   // Should be: http://156.67.104.149:8012
    ```
 
 4. **Hot restart** (not just hot reload):

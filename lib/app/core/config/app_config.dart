@@ -19,7 +19,7 @@ class AppConfig {
 
   /// Main backend API server
   /// This is used for all API requests (auth, products, orders, etc.)
-  static const String apiBaseUrl = 'http://156.67.104.149:8080';
+  static const String apiBaseUrl = 'http://156.67.104.149:8012';
 
   /// API base URL with trailing slash (for some endpoints that need it)
   static const String apiBaseUrlWithSlash = '$apiBaseUrl/';

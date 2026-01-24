@@ -125,7 +125,7 @@ Before reporting the issue, verify:
 - [ ] User is logged in (session cookie present)
 - [ ] Internet connection is working
 - [ ] Running on debug mode
-- [ ] API base URL is correct: `http://156.67.104.149:8080`
+- [ ] API base URL is correct: `http://156.67.104.149:8012`
 - [ ] All three data source files have correct endpoints:
   - [ ] `checkout_line_remote_data_source.dart` → `/api/order/v1/checkout-lines/`
   - [ ] `coupon_remote_data_source.dart` → `/api/order/v1/coupons/`
@@ -135,7 +135,7 @@ Before reporting the issue, verify:
 
 ### Successful Add to Cart Request
 ```http
-POST http://156.67.104.149:8080/api/order/v1/checkout-lines/
+POST http://156.67.104.149:8012/api/order/v1/checkout-lines/
 Content-Type: application/json
 Cookie: sessionid=xyz123...
 X-CSRFToken: abc456...

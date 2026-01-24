@@ -1,5 +1,4 @@
 import 'package:imart/app/core/error/failure.dart';
-import 'package:imart/features/cart/application/controllers/cart_controller.dart';
 import 'package:imart/features/profile/application/states/order_state.dart';
 import 'package:imart/features/profile/domain/entities/order.dart';
 import 'package:imart/features/profile/domain/entities/order_rating.dart';
@@ -177,68 +176,75 @@ class Order extends _$Order {
   }
 
   /// Reorder an order (add items to cart)
-  /// Fetches order items and adds each one to the cart
+  /// Uses the dedicated reorder API endpoint for instant operation
   Future<bool> reorder({required int orderId}) async {
     try {
       print('🔵 [OrderProvider] Starting reorder for orderId: $orderId');
       state = OrderReordering(orderId);
 
-      // Get order items
-      final itemsResult = await _repository.getOrderItems(orderId: orderId);
+      // Call the reorder API endpoint (single call, much faster!)
+      final result = await _repository.reorder(orderId: orderId);
 
-      return await itemsResult.fold(
+      return result.fold(
         (failure) {
-          print('🔴 [OrderProvider] Failed to get order items: ${failure.message}');
+          print('🔴 [OrderProvider] Reorder failed: ${failure.message}');
           state = OrderError(failure, state);
           return false;
         },
-        (items) async {
-          print('🟢 [OrderProvider] Found ${items.length} items to reorder');
+        (data) {
+          print('🟢 [OrderProvider] Reorder success: ${data['message']}');
+          state = OrderReorderSuccess(orderId);
+          // Return to loaded state
+          Future.delayed(const Duration(milliseconds: 500), _loadOrders);
+          return true;
+        },
+      );
+    } catch (e) {
+      print('🔴 [OrderProvider] Exception during reorder: $e');
+      state = OrderError(AppFailure(e.toString()), state);
+      return false;
+    }
+  }
 
-          // Track success/failure counts
-          int successCount = 0;
-          int failureCount = 0;
+  /// Reorder an order with progress callback
+  /// Uses the dedicated reorder API endpoint for instant operation
+  /// Progress callback is called with simulated progress for UI smoothness
+  Future<bool> reorderWithProgress({
+    required int orderId,
+    required void Function(int current, int total) onProgress,
+  }) async {
+    try {
+      print('🔵 [OrderProvider] Starting reorder for orderId: $orderId');
+      state = OrderReordering(orderId);
 
-          // Add each item to cart
-          final cartController = ref.read(cartControllerProvider.notifier);
+      // Simulate smooth progress animation
+      onProgress(0, 100);
 
-          for (final item in items) {
-            try {
-              if (item.productVariantId == null) {
-                print('⚠️ [OrderProvider] Skipping item ${item.productName} - no variant ID');
-                failureCount++;
-                continue;
-              }
+      // Small delay to show initial state
+      await Future.delayed(const Duration(milliseconds: 100));
+      onProgress(30, 100);
 
-              print('🔵 [OrderProvider] Adding ${item.productName} (variant: ${item.productVariantId}, qty: ${item.quantity})');
+      // Call the reorder API endpoint (single call, much faster!)
+      final result = await _repository.reorder(orderId: orderId);
 
-              await cartController.addToCart(
-                productVariantId: item.productVariantId!,
-                quantity: item.quantity,
-              );
+      return await result.fold(
+        (failure) {
+          print('🔴 [OrderProvider] Reorder failed: ${failure.message}');
+          state = OrderError(failure, state);
+          return false;
+        },
+        (data) async {
+          print('🟢 [OrderProvider] Reorder success: ${data['message']}');
 
-              successCount++;
-              print('✅ [OrderProvider] Successfully added ${item.productName}');
-            } catch (e) {
-              print('❌ [OrderProvider] Failed to add ${item.productName}: $e');
-              failureCount++;
-            }
-          }
+          // Show progress completion
+          onProgress(70, 100);
+          await Future.delayed(const Duration(milliseconds: 100));
+          onProgress(100, 100);
 
-          print('🟢 [OrderProvider] Reorder complete: $successCount succeeded, $failureCount failed');
-
-          if (successCount > 0) {
-            state = OrderReorderSuccess(orderId);
-            // Return to loaded state
-            Future.delayed(const Duration(milliseconds: 500), _loadOrders);
-            return true;
-          } else {
-            state = OrderError(
-              const AppFailure('Could not add any items to cart'),
-              state,
-            );
-            return false;
-          }
+          state = OrderReorderSuccess(orderId);
+          // Return to loaded state
+          Future.delayed(const Duration(milliseconds: 500), _loadOrders);
+          return true;
         },
       );
     } catch (e) {

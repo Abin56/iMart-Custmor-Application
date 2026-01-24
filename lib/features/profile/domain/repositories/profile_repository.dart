@@ -104,9 +104,10 @@ abstract class ProfileRepository {
   /// [rating] - OrderRatingEntity containing order ID, rating (1-5), and optional review
   Future<Either<Failure, void>> rateOrder({required OrderRatingEntity rating});
 
-  /// Reorder - creates new order with same items
+  /// Reorder - adds items from an existing order to the user's checkout
   /// [orderId] - Order ID to reorder
-  Future<Either<Failure, void>> reorder({required int orderId});
+  /// Returns: Either<Failure, Map<String, dynamic>> with {"message": "...", "checkout_id": 1}
+  Future<Either<Failure, Map<String, dynamic>>> reorder({required int orderId});
 
   /// Get cached orders (instant, offline-first)
   Future<List<OrderEntity>> getCachedOrders();

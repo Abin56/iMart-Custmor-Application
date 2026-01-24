@@ -32,11 +32,26 @@ class Category extends Equatable {
       return 'https://$url';
     }
 
+    // Parse description - handle both String and Map formats
+    String? parseDescription(dynamic description) {
+      if (description == null) return null;
+      if (description is String) return description;
+      if (description is Map) {
+        // If it's a map, try to get the 'en' key or the first value
+        if (description.containsKey('en')) {
+          return description['en'] as String?;
+        }
+        // Return the first value if 'en' key doesn't exist
+        return description.values.firstOrNull?.toString();
+      }
+      return description.toString();
+    }
+
     return Category(
       id: map['id'] as int,
       name: map['name'] as String,
       slug: map['slug'] as String?,
-      description: map['description'] as String?,
+      description: parseDescription(map['description']),
       descriptionPlaintext: map['description_plaintext'] as String?,
       parentId: map['parent_id'] as int?,
       backgroundImageUrl: fixBackgroundImageUrl(

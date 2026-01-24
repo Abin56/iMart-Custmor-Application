@@ -47,7 +47,7 @@ The Product Details feature implements a **highly optimized real-time product in
 
 ### Base URL
 ```
-http://156.67.104.149:8080
+http://156.67.104.149:8012
 ```
 
 ### Endpoint Summary
@@ -2848,4 +2848,4 @@ class ProductDetailViewModel: ObservableObject {
 
 **Last Updated:** 2026-01-17
 **Version:** 1.0
-**Backend API:** Django REST at `http://156.67.104.149:8080`
+**Backend API:** Django REST at `http://156.67.104.149:8012`
