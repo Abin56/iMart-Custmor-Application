@@ -680,31 +680,31 @@ class _ReorderButton extends ConsumerWidget {
 
       if (!context.mounted) return;
 
-      // Show success message
+      // Navigate to cart tab first
+      Navigator.of(context).popUntil((route) => route.isFirst);
+      MainNavigationShell.globalKey.currentState?.navigateToTab(3);
+
+      // Show success message after a brief delay to ensure we're on cart screen
+      await Future.delayed(const Duration(milliseconds: 300));
+
+      if (!context.mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('Items added to cart'),
-          duration: const Duration(seconds: 2),
+          duration: const Duration(seconds: 3),
           backgroundColor: const Color(0xFF25A63E),
           behavior: SnackBarBehavior.floating,
+          margin: EdgeInsets.only(
+            bottom: 80.h, // Above bottom navbar
+            left: 16.w,
+            right: 16.w,
+          ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12.r),
           ),
-          action: SnackBarAction(
-            label: 'View Cart',
-            textColor: Colors.white,
-            onPressed: () {
-              // Navigate to cart tab
-              Navigator.of(context).popUntil((route) => route.isFirst);
-              MainNavigationShell.globalKey.currentState?.navigateToTab(3);
-            },
-          ),
         ),
       );
-
-      // Navigate to cart tab
-      Navigator.of(context).popUntil((route) => route.isFirst);
-      MainNavigationShell.globalKey.currentState?.navigateToTab(3);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

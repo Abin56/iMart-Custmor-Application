@@ -21,17 +21,40 @@ class _OrderItemsBottomSheetState extends ConsumerState<OrderItemsBottomSheet> {
   @override
   void initState() {
     super.initState();
+    print('🔵 [OrderItemsBottomSheet] ========================================');
+    print('🔵 [OrderItemsBottomSheet] initState called for orderId: ${widget.orderId}');
+    print('🔵 [OrderItemsBottomSheet] Current state before loading: ${ref.read(orderProvider).runtimeType}');
+    if (ref.read(orderProvider) is OrderItemsLoaded) {
+      final currentState = ref.read(orderProvider) as OrderItemsLoaded;
+      print('🔵 [OrderItemsBottomSheet] Previous state had orderId: ${currentState.orderId} with ${currentState.items.length} items');
+    }
     // Load order items when bottom sheet opens
     Future.microtask(
-      () => ref
-          .read(orderProvider.notifier)
-          .loadOrderItems(orderId: widget.orderId),
+      () {
+        print('🔵 [OrderItemsBottomSheet] Calling loadOrderItems for orderId: ${widget.orderId}');
+        ref
+            .read(orderProvider.notifier)
+            .loadOrderItems(orderId: widget.orderId);
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final orderState = ref.watch(orderProvider);
+    print('🔵 [OrderItemsBottomSheet] build called, state type: ${orderState.runtimeType}');
+    print('🔵 [OrderItemsBottomSheet] widget.orderId = ${widget.orderId}');
+
+    if (orderState is OrderItemsLoaded) {
+      print('🔵 [OrderItemsBottomSheet] orderState.orderId = ${orderState.orderId}');
+      print('🔵 [OrderItemsBottomSheet] Match? ${orderState.orderId == widget.orderId}');
+      print('🔵 [OrderItemsBottomSheet] Items count: ${orderState.items.length}');
+      for (var i = 0; i < orderState.items.length; i++) {
+        print('   [${i + 1}] ${orderState.items[i].productName} (Order: ${orderState.items[i].orderId})');
+      }
+    } else if (orderState is OrderItemsLoading) {
+      print('🔵 [OrderItemsBottomSheet] OrderItemsLoading.orderId = ${orderState.orderId}');
+    }
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.75,
@@ -156,24 +179,44 @@ class _OrderItemsBottomSheetState extends ConsumerState<OrderItemsBottomSheet> {
           // Items list
           Expanded(
             child: orderState is OrderItemsLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const CircularProgressIndicator(),
+                        SizedBox(height: 16.h),
+                        Text(
+                          'Loading items...',
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
                 : orderState is OrderItemsLoaded &&
                       orderState.orderId == widget.orderId
-                ? ListView.separated(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 20.w,
-                      vertical: 16.h,
-                    ),
-                    itemCount: orderState.items.length,
-                    separatorBuilder: (context, index) =>
-                        SizedBox(height: 12.h),
-                    itemBuilder: (context, index) {
-                      final item = orderState.items[index];
-                      return _buildOrderItem(
-                        name: item.productName,
-                        quantity: '${item.quantity} x ${item.formattedPrice}',
-                        price: item.totalPrice,
-                        imageUrl: item.productImage,
+                ? Builder(
+                    builder: (context) {
+                      print('🟢 [OrderItemsBottomSheet] Displaying ${orderState.items.length} items');
+                      return ListView.separated(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 20.w,
+                          vertical: 16.h,
+                        ),
+                        itemCount: orderState.items.length,
+                        separatorBuilder: (context, index) =>
+                            SizedBox(height: 12.h),
+                        itemBuilder: (context, index) {
+                          final item = orderState.items[index];
+                          return _buildOrderItem(
+                            name: item.productName,
+                            quantity: '${item.quantity} x ${item.formattedPrice}',
+                            price: item.totalPrice,
+                            imageUrl: item.productImage,
+                          );
+                        },
                       );
                     },
                   )

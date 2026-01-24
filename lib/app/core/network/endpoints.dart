@@ -23,7 +23,7 @@ class ApiEndpoints {
   // ============================================================================
   // ADMIN ENDPOINTS
   // ============================================================================
-  static const String adminPhone = '/api/accounts/v1/admin/phone/';
+  static const String adminPhone = '/api/auth/v1/admin/phone/';
 
   // ============================================================================
   // CATEGORY ENDPOINTS

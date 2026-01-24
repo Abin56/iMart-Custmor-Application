@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../app/core/error/failure.dart';
 import '../../../../app/core/widgets/app_text.dart';
@@ -72,11 +73,11 @@ class _WishlistScreenState extends ConsumerState<WishlistScreen> {
           GestureDetector(
             onTap: () {
               // If callback is provided, use it (tab navigation)
-              // Otherwise use Navigator pop (route navigation)
+              // Otherwise use context.pop() for proper navigation
               if (widget.onBackPressed != null) {
                 widget.onBackPressed!.call();
-              } else {
-                Navigator.of(context).pop();
+              } else if (context.canPop()) {
+                context.pop();
               }
             },
             child: Container(

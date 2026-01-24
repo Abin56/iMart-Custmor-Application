@@ -1,4 +1,5 @@
 import 'package:imart/app/core/error/failure.dart';
+import 'package:imart/features/cart/application/controllers/cart_controller.dart';
 import 'package:imart/features/profile/application/states/order_state.dart';
 import 'package:imart/features/profile/domain/entities/order.dart';
 import 'package:imart/features/profile/domain/entities/order_rating.dart';
@@ -92,6 +93,8 @@ class Order extends _$Order {
   /// Preserves orders list so the orders screen doesn't disappear
   Future<void> loadOrderItems({required int orderId}) async {
     try {
+      print('🔵 [OrderProvider] Loading order items for orderId: $orderId');
+
       // Preserve orders list from current state
       final currentOrders = _getCurrentOrders();
 
@@ -101,14 +104,21 @@ class Order extends _$Order {
 
       result.fold(
         (failure) {
+          print('🔴 [OrderProvider] Failed to load order items: ${failure.message}');
           state = OrderError(failure, state);
         },
         (items) {
+          print('🟢 [OrderProvider] Successfully loaded ${items.length} items');
+          for (var item in items) {
+            print('   - Item: ${item.productName}, Qty: ${item.quantity}, Price: ${item.price}');
+          }
           state = OrderItemsLoaded(orderId, items, orders: currentOrders);
         },
       );
       // ignore: empty_catches
-    } catch (e) {}
+    } catch (e) {
+      print('🔴 [OrderProvider] Exception loading order items: $e');
+    }
   }
 
   /// Helper to get current orders list from any state
@@ -167,25 +177,73 @@ class Order extends _$Order {
   }
 
   /// Reorder an order (add items to cart)
+  /// Fetches order items and adds each one to the cart
   Future<bool> reorder({required int orderId}) async {
     try {
+      print('🔵 [OrderProvider] Starting reorder for orderId: $orderId');
       state = OrderReordering(orderId);
 
-      final result = await _repository.reorder(orderId: orderId);
+      // Get order items
+      final itemsResult = await _repository.getOrderItems(orderId: orderId);
 
-      return result.fold(
+      return await itemsResult.fold(
         (failure) {
+          print('🔴 [OrderProvider] Failed to get order items: ${failure.message}');
           state = OrderError(failure, state);
           return false;
         },
-        (_) {
-          state = OrderReorderSuccess(orderId);
-          // Return to loaded state
-          Future.delayed(const Duration(milliseconds: 500), _loadOrders);
-          return true;
+        (items) async {
+          print('🟢 [OrderProvider] Found ${items.length} items to reorder');
+
+          // Track success/failure counts
+          int successCount = 0;
+          int failureCount = 0;
+
+          // Add each item to cart
+          final cartController = ref.read(cartControllerProvider.notifier);
+
+          for (final item in items) {
+            try {
+              if (item.productVariantId == null) {
+                print('⚠️ [OrderProvider] Skipping item ${item.productName} - no variant ID');
+                failureCount++;
+                continue;
+              }
+
+              print('🔵 [OrderProvider] Adding ${item.productName} (variant: ${item.productVariantId}, qty: ${item.quantity})');
+
+              await cartController.addToCart(
+                productVariantId: item.productVariantId!,
+                quantity: item.quantity,
+              );
+
+              successCount++;
+              print('✅ [OrderProvider] Successfully added ${item.productName}');
+            } catch (e) {
+              print('❌ [OrderProvider] Failed to add ${item.productName}: $e');
+              failureCount++;
+            }
+          }
+
+          print('🟢 [OrderProvider] Reorder complete: $successCount succeeded, $failureCount failed');
+
+          if (successCount > 0) {
+            state = OrderReorderSuccess(orderId);
+            // Return to loaded state
+            Future.delayed(const Duration(milliseconds: 500), _loadOrders);
+            return true;
+          } else {
+            state = OrderError(
+              const AppFailure('Could not add any items to cart'),
+              state,
+            );
+            return false;
+          }
         },
       );
     } catch (e) {
+      print('🔴 [OrderProvider] Exception during reorder: $e');
+      state = OrderError(AppFailure(e.toString()), state);
       return false;
     }
   }

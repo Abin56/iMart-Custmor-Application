@@ -24,6 +24,7 @@ class MainNavigationShell extends StatefulWidget {
 class _MainNavigationShellState extends State<MainNavigationShell> {
   int _currentIndex = 0;
   bool _showNavBar = true;
+  final List<int> _navigationHistory = [0]; // Track navigation history
 
   List<Widget> get _screens => [
     const HomeScreen(), // Index 0
@@ -31,11 +32,8 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
     WishlistScreen(
       // Index 2
       onBackPressed: () {
-        // Navigate back to home when back is pressed in wishlist
-        setState(() {
-          _currentIndex = 0;
-          _showNavBar = true;
-        });
+        // Navigate to previous screen in history
+        _handleBackPressed();
       },
       onStartShopping: () {
         // Navigate to category page when Start Shopping button is tapped
@@ -48,11 +46,8 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
     CartScreen(
       // Index 3
       onBackPressed: () {
-        // Navigate back to home when back is pressed in cart
-        setState(() {
-          _currentIndex = 0;
-          _showNavBar = true;
-        });
+        // Navigate to previous screen in history
+        _handleBackPressed();
       },
       onProceedToAddress: () {
         // Navigate to address selection screen
@@ -101,6 +96,10 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
 
   void _onNavItemTapped(int index) {
     setState(() {
+      // Add current index to history if it's different from the last one
+      if (_navigationHistory.isEmpty || _navigationHistory.last != index) {
+        _navigationHistory.add(index);
+      }
       _currentIndex = index;
       // Hide navbar when navigating to cart (index 3)
       _showNavBar = index != 3;
@@ -108,6 +107,19 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
 
     // Trigger animations when navigating to Categories screen
     if (index == 1) {}
+  }
+
+  /// Handle back button press - navigate to previous screen in history
+  void _handleBackPressed() {
+    if (_navigationHistory.length > 1) {
+      setState(() {
+        // Remove current screen from history
+        _navigationHistory.removeLast();
+        // Navigate to previous screen
+        _currentIndex = _navigationHistory.last;
+        _showNavBar = _currentIndex != 3;
+      });
+    }
   }
 
   // Reserved for future cart back navigation functionality
@@ -127,29 +139,37 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          // Current screen content
-          IndexedStack(index: _currentIndex, children: _screens),
+    return PopScope(
+      canPop: _navigationHistory.length <= 1,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop && _navigationHistory.length > 1) {
+          _handleBackPressed();
+        }
+      },
+      child: Scaffold(
+        body: Stack(
+          children: [
+            // Current screen content
+            IndexedStack(index: _currentIndex, children: _screens),
 
-          // Glassmorphism bottom navigation bar (conditionally shown)
-          if (_showNavBar)
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: AnimatedSlide(
-                duration: const Duration(milliseconds: 300),
-                offset: _showNavBar ? Offset.zero : const Offset(0, 1),
-                child: AnimatedOpacity(
+            // Glassmorphism bottom navigation bar (conditionally shown)
+            if (_showNavBar)
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: AnimatedSlide(
                   duration: const Duration(milliseconds: 300),
-                  opacity: _showNavBar ? 1.0 : 0.0,
-                  child: _buildGlassmorphismNavBar(),
+                  offset: _showNavBar ? Offset.zero : const Offset(0, 1),
+                  child: AnimatedOpacity(
+                    duration: const Duration(milliseconds: 300),
+                    opacity: _showNavBar ? 1.0 : 0.0,
+                    child: _buildGlassmorphismNavBar(),
+                  ),
                 ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }

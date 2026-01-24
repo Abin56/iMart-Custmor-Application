@@ -16,6 +16,7 @@ import 'application/providers/cart_filter_provider.dart';
 import 'application/providers/cart_paginated_provider.dart';
 import 'application/providers/cart_search_provider.dart';
 import 'application/providers/recent_search_provider.dart';
+import 'application/providers/selected_category_provider.dart';
 import 'domain/entities/category.dart';
 import 'presentation/widgets/loading_bottom_sheet.dart';
 
@@ -220,6 +221,29 @@ class _CategoryScreenState extends ConsumerState<CategoryScreen> {
 
     // Debug: Listen to filter state changes
     ref.listen(cartFilterProvider, (previous, next) {});
+
+    // Listen to selected category changes from home page navigation
+    ref.listen<int?>(selectedCategoryProvider, (previous, next) {
+      if (next != null && _categories.isNotEmpty) {
+        final index = _categories.indexWhere((cat) => cat.id == next);
+        if (index >= 0 && index != _selectedCategoryIndex) {
+          setState(() {
+            _selectedCategoryIndex = index;
+            _selectedFilterIndex = -1; // Reset filter
+          });
+          // Clear any active filters
+          ref.read(cartFilterProvider.notifier).clearFilters();
+          // Scroll to the category
+          Future.delayed(const Duration(milliseconds: 100), () {
+            if (mounted) {
+              _bodyKey.currentState?.scrollToCategory(index);
+            }
+          });
+          // Clear the selection after handling
+          ref.read(selectedCategoryProvider.notifier).clearSelection();
+        }
+      }
+    });
 
     return Stack(
       children: [

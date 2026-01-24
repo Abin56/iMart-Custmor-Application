@@ -177,6 +177,10 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                 final checkoutLine = cartItems[index];
                 final shouldAnimate = _hasAnimated && index < 5;
 
+                // Check if item is out of stock
+                final isOutOfStock = checkoutLine.productVariantDetails.trackInventory &&
+                    checkoutLine.productVariantDetails.currentQuantity < checkoutLine.quantity;
+
                 final cartItem = CartItemWidget(
                   productName: checkoutLine.productVariantDetails.name,
                   unit: checkoutLine.productVariantDetails.sku,
@@ -188,6 +192,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                       checkoutLine.productVariantDetails.primaryImageUrl ??
                       'assets/images/no-image.png',
                   quantity: checkoutLine.quantity,
+                  isOutOfStock: isOutOfStock,
                   onIncrement: () {
                     ref
                         .read(cartControllerProvider.notifier)
@@ -297,7 +302,11 @@ class _CartScreenState extends ConsumerState<CartScreen> {
           GestureDetector(
             onTap: () {
               // Navigate back or to home
-              widget.onBackPressed?.call();
+              if (widget.onBackPressed != null) {
+                widget.onBackPressed!.call();
+              } else if (context.canPop()) {
+                context.pop();
+              }
             },
             child: Container(
               width: 40.w,

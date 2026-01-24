@@ -25,7 +25,8 @@
       "Bash(elif [ -f \"pre_commit_check.sh\" ])",
       "Bash(then bash pre_commit_check.sh)",
       "Bash(else echo \"No pre-commit script found\")",
-      "Bash(fi)"
+      "Bash(fi)",
+      "Bash(./gradlew:*)"
     ]
   }
 }

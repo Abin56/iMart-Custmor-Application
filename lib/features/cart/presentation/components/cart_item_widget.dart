@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -17,6 +19,7 @@ class CartItemWidget extends StatelessWidget {
     required this.onDecrement,
     super.key,
     this.onInfoTap,
+    this.isOutOfStock = false,
   });
   final String productName;
   final String unit;
@@ -27,6 +30,7 @@ class CartItemWidget extends StatelessWidget {
   final VoidCallback onIncrement;
   final VoidCallback onDecrement;
   final VoidCallback? onInfoTap;
+  final bool isOutOfStock;
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +56,40 @@ class CartItemWidget extends StatelessWidget {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8.r),
-                child: _buildImage(imagePath),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    _buildImage(imagePath),
+                    if (isOutOfStock)
+                      BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 1.5, sigmaY: 1.5),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.3),
+                          ),
+                          alignment: Alignment.center,
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 6.w,
+                              vertical: 3.h,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.red.shade700,
+                              borderRadius: BorderRadius.circular(4.r),
+                            ),
+                            child: Text(
+                              'Out of Stock',
+                              style: TextStyle(
+                                fontSize: 8.sp,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
 

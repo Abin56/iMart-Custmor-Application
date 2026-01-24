@@ -11,6 +11,7 @@ class OrderItemEntity extends Equatable {
     required this.price,
     required this.totalPrice,
     this.variantName,
+    this.productVariantId,
   });
 
   factory OrderItemEntity.fromMap(Map<String, dynamic> map) {
@@ -34,6 +35,7 @@ class OrderItemEntity extends Equatable {
     String productImage;
     double price;
     String? variantName;
+    int? productVariantId;
 
     if (variantDetails != null) {
       // New API structure with nested product_variant_details
@@ -44,12 +46,14 @@ class OrderItemEntity extends Equatable {
         variantDetails['price'] ?? variantDetails['discounted_price'],
       );
       variantName = variantDetails['sku'] as String?;
+      productVariantId = variantDetails['id'] as int?;
     } else {
       // Legacy/flat structure
       productName = map['product_name'] as String? ?? 'Unknown Product';
       productImage = fixImageUrl(map['product_image'] as String?) ?? '';
       price = _parseAmount(map['price']);
       variantName = map['variant_name'] as String?;
+      productVariantId = map['product_variant'] as int? ?? map['product_variant_id'] as int?;
     }
 
     // Get quantity
@@ -72,6 +76,7 @@ class OrderItemEntity extends Equatable {
       price: price,
       totalPrice: totalPrice,
       variantName: variantName,
+      productVariantId: productVariantId,
     );
   }
 
@@ -83,6 +88,7 @@ class OrderItemEntity extends Equatable {
   final double price;
   final double totalPrice;
   final String? variantName;
+  final int? productVariantId;
 
   /// Parse amount from String or num
   static double _parseAmount(dynamic amount) {
@@ -118,6 +124,7 @@ class OrderItemEntity extends Equatable {
       'price': price.toString(),
       'total_price': totalPrice.toString(),
       'variant_name': variantName,
+      'product_variant_id': productVariantId,
     };
   }
 
@@ -131,5 +138,6 @@ class OrderItemEntity extends Equatable {
     price,
     totalPrice,
     variantName,
+    productVariantId,
   ];
 }

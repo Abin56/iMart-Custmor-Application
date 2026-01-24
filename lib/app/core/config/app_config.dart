@@ -54,13 +54,13 @@ class AppConfig {
   // ============================================================================
 
   /// Connection timeout duration
-  static const Duration connectTimeout = Duration(seconds: 30);
+  static const Duration connectTimeout = Duration(seconds: 60);
 
   /// Receive timeout duration
-  static const Duration receiveTimeout = Duration(seconds: 30);
+  static const Duration receiveTimeout = Duration(seconds: 60);
 
   /// Send timeout duration
-  static const Duration sendTimeout = Duration(seconds: 30);
+  static const Duration sendTimeout = Duration(seconds: 60);
 
   // ============================================================================
   // HELPER METHODS

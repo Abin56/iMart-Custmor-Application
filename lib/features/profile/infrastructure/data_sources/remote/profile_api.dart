@@ -346,36 +346,47 @@ class ProfileApi {
   }
 
   /// Get order items (line items) for a specific order
+  /// Uses the order details endpoint which includes order_lines directly
   Future<List<OrderItemEntity>> getOrderItems({required int orderId}) async {
     try {
-      final res = await _dio.get(ProfileEndpoints.orderItems(orderId));
+      // Use order details endpoint instead of order-lines endpoint
+      // This ensures we only get items for this specific order
+      final endpoint = ProfileEndpoints.orderDetails(orderId);
+      print('🔵 [ProfileAPI] Fetching order items from: $endpoint');
+
+      final res = await _dio.get(endpoint);
+
+      print('🔵 [ProfileAPI] Response status: ${res.statusCode}');
 
       if (res.statusCode != 200) {
         throw Exception('Get order items failed: ${res.statusCode}');
       }
 
-      // Handle paginated response: {"count": N, "results": [...]}
-      final responseData = res.data;
+      final responseData = res.data as Map<String, dynamic>;
+      print('🔵 [ProfileAPI] Order ID from response: ${responseData['id']}');
 
-      List<dynamic> data;
+      // Extract order_lines from the order details response
+      final orderLines = responseData['order_lines'] as List<dynamic>?;
 
-      if (responseData is Map<String, dynamic> &&
-          responseData.containsKey('results')) {
-        // Paginated response
-        data = responseData['results'] as List<dynamic>;
-      } else if (responseData is List) {
-        // Direct list response
-        data = responseData;
-      } else {
-        throw Exception('Unexpected response format');
+      if (orderLines == null || orderLines.isEmpty) {
+        print('🟡 [ProfileAPI] No order_lines found in response');
+        return [];
       }
 
-      final items = data
+      print('🟡 [ProfileAPI] Found ${orderLines.length} items in order_lines');
+
+      final items = orderLines
           .map((item) => OrderItemEntity.fromMap(item as Map<String, dynamic>))
           .toList();
 
+      print('🟢 [ProfileAPI] Successfully parsed ${items.length} items for order $orderId');
+      for (var i = 0; i < items.length; i++) {
+        print('   [${i + 1}] ${items[i].productName} (Qty: ${items[i].quantity}, Order: ${items[i].orderId})');
+      }
+
       return items;
     } catch (e) {
+      print('🔴 [ProfileAPI] Error fetching order items: $e');
       final failure = mapDioError(e);
       throw Exception(failure.message);
     }

@@ -12,8 +12,10 @@ import 'package:imart/features/category/application/providers/cart_filter_provid
 import 'package:imart/features/category/application/providers/cart_paginated_provider.dart';
 import 'package:imart/features/category/application/providers/cart_search_provider.dart';
 import 'package:imart/features/category/application/providers/recent_search_provider.dart';
+import 'package:imart/features/category/application/providers/selected_category_provider.dart';
 import 'package:imart/features/category/domain/entities/category.dart';
 import 'package:imart/features/category/models/category_item.dart';
+import 'package:imart/features/navigation/main_navbar.dart';
 import 'package:imart/features/home/application/providers/home_data_provider.dart';
 import 'package:imart/features/home/domain/entities/product_variant.dart';
 import 'package:imart/features/home/presentation/components/home_top_section_ui.dart';
@@ -120,6 +122,42 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
+  /// Navigate to discounted products (Best Deals)
+  void _navigateToDiscountedProducts() {
+    final discountedProducts = ref.read(discountedProductsProvider);
+    discountedProducts.whenData((products) {
+      if (products.isNotEmpty) {
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (context) => _ProductListBottomSheet(
+            title: 'Best Deals',
+            products: products,
+          ),
+        );
+      }
+    });
+  }
+
+  /// Navigate to offer products (Mega Fresh offers)
+  void _navigateToOfferProducts() {
+    final offerProducts = ref.read(offerCategoryProductsProvider);
+    offerProducts.whenData((products) {
+      if (products.isNotEmpty) {
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (context) => _OfferProductListBottomSheet(
+            title: 'Mega Fresh Offers',
+            products: products,
+          ),
+        );
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -133,7 +171,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Top section (green background + categories)
-                const HomeTopSectionUI(),
+                HomeTopSectionUI(
+                  onCategoryTap: (category) {
+                    // Set the selected category ID in the provider
+                    ref
+                        .read(selectedCategoryProvider.notifier)
+                        .selectCategory(category.id);
+
+                    // Navigate to category screen (tab index 1)
+                    final navKey = MainNavigationShell.globalKey;
+                    navKey.currentState?.navigateToTab(1);
+                  },
+                ),
 
                 // Search bar
                 _buildSearchBar(),
@@ -221,7 +270,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               ),
               TextButton(
-                onPressed: () {},
+                onPressed: () {
+                  // Navigate to discounted products page
+                  _navigateToDiscountedProducts();
+                },
                 style: TextButton.styleFrom(
                   padding: EdgeInsets.zero,
                   minimumSize: Size.zero,
@@ -314,7 +366,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               ),
               TextButton(
-                onPressed: () {},
+                onPressed: () {
+                  // Navigate to offer products page
+                  _navigateToOfferProducts();
+                },
                 style: TextButton.styleFrom(
                   padding: EdgeInsets.zero,
                   minimumSize: Size.zero,
@@ -1720,6 +1775,265 @@ class _SearchBottomSheetState extends ConsumerState<_SearchBottomSheet> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Product List Bottom Sheet for Best Deals (See All)
+class _ProductListBottomSheet extends ConsumerWidget {
+  const _ProductListBottomSheet({
+    required this.title,
+    required this.products,
+  });
+
+  final String title;
+  final List<ProductVariant> products;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.9,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(24.r),
+          topRight: Radius.circular(24.r),
+        ),
+      ),
+      child: Column(
+        children: [
+          // Header
+          Container(
+            padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 16.h),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(24.r),
+                topRight: Radius.circular(24.r),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 10.r,
+                  offset: Offset(0, 2.h),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                // Drag handle
+                Center(
+                  child: Container(
+                    width: 40.w,
+                    height: 4.h,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(2.r),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 16.h),
+                // Title row
+                Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Container(
+                        width: 36.w,
+                        height: 36.h,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.close,
+                          size: 20.sp,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 12.w),
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 20.sp,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      '${products.length} items',
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF25A63E),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          // Product grid
+          Expanded(
+            child: GridView.builder(
+              padding: EdgeInsets.all(20.w),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 12.w,
+                mainAxisSpacing: 12.h,
+                childAspectRatio: 0.68,
+              ),
+              itemCount: products.length,
+              itemBuilder: (context, index) {
+                final product = products[index];
+                return _ProductCard(
+                  key: ValueKey('discounted_all_${product.id}'),
+                  title: product.name,
+                  price: '₹ ${product.discountedPrice}',
+                  discount:
+                      '${product.discountPercentage.toStringAsFixed(0)}% OFF',
+                  imagePath: product.primaryImageUrl ?? '',
+                  productVariant: product,
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Offer Product List Bottom Sheet for Mega Offers (See More)
+class _OfferProductListBottomSheet extends ConsumerWidget {
+  const _OfferProductListBottomSheet({
+    required this.title,
+    required this.products,
+  });
+
+  final String title;
+  final List<dynamic> products;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.9,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(24.r),
+          topRight: Radius.circular(24.r),
+        ),
+      ),
+      child: Column(
+        children: [
+          // Header
+          Container(
+            padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 16.h),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(24.r),
+                topRight: Radius.circular(24.r),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 10.r,
+                  offset: Offset(0, 2.h),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                // Drag handle
+                Center(
+                  child: Container(
+                    width: 40.w,
+                    height: 4.h,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(2.r),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 16.h),
+                // Title row
+                Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Container(
+                        width: 36.w,
+                        height: 36.h,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.close,
+                          size: 20.sp,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 12.w),
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 20.sp,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      '${products.length} items',
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF25A63E),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          // Product grid
+          Expanded(
+            child: GridView.builder(
+              padding: EdgeInsets.all(20.w),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 12.w,
+                mainAxisSpacing: 12.h,
+                childAspectRatio: 0.68,
+              ),
+              itemCount: products.length,
+              itemBuilder: (context, index) {
+                final product = products[index];
+                return _ProductCard(
+                  key: ValueKey('offer_all_${product.productId}_${product.variantId}'),
+                  title: product.productName,
+                  price: '₹ ${product.discountedPrice ?? product.price}',
+                  discount: product.hasDiscount
+                      ? '${product.discountPercentage.toStringAsFixed(0)}% OFF'
+                      : null,
+                  imagePath: product.imageUrl ?? '',
+                  variantId: product.variantId,
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
