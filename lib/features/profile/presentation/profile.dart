@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:imart/features/auth/application/providers/auth_provider.dart';
 import 'package:imart/features/auth/application/states/auth_state.dart';
@@ -544,11 +545,7 @@ class ProfileDrawer extends ConsumerWidget {
                 Navigator.pop(context);
 
                 // Navigate to splash screen (which handles navigation to login)
-                Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  '/',
-                  (route) => false,
-                );
+                context.go('/splash');
               },
               child: Container(
                 width: double.infinity,

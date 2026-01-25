@@ -128,7 +128,7 @@ class _AddressSessionScreenState extends ConsumerState<AddressSessionScreen> {
 
                       // Address List
                       if (addresses.isEmpty)
-                        _buildEmptyState()
+                        Center(child: _buildEmptyState())
                       else
                         ...addresses.map(
                           (address) => Padding(
@@ -269,6 +269,7 @@ class _AddressSessionScreenState extends ConsumerState<AddressSessionScreen> {
     return Container(
       padding: EdgeInsets.all(32.w),
       child: Column(
+
         children: [
           Icon(
             Icons.location_off_outlined,

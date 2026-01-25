@@ -7,7 +7,7 @@ part of 'cart_paginated_provider.dart';
 // **************************************************************************
 
 String _$paginatedCategoryProductsHash() =>
-    r'bfbabe1912ea2c6d660b314ed19d163c0dcf22dd';
+    r'331d8cb79360c48a623f3e153a0d6872cd1938e8';
 
 /// Copied from Dart SDK
 class _SystemHash {

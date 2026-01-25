@@ -1,6 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import 'package:imart/features/profile/application/providers/profile_provider.dart';
 import 'package:imart/features/profile/application/states/profile_state.dart';
@@ -23,6 +27,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
+  final _imagePicker = ImagePicker();
+
+  File? _selectedImage;
+  bool _isUploadingImage = false;
 
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -78,6 +86,304 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
     super.dispose();
   }
 
+  /// Show bottom sheet to choose image source
+  Future<void> _showImageSourceDialog() async {
+    await showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(24.r),
+            topRight: Radius.circular(24.r),
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(height: 16.h),
+              // Drag handle
+              Container(
+                width: 40.w,
+                height: 4.h,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2.r),
+                ),
+              ),
+              SizedBox(height: 20.h),
+              Text(
+                'Choose Profile Photo',
+                style: TextStyle(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black,
+                ),
+              ),
+              SizedBox(height: 20.h),
+              // Camera option
+              _buildImageSourceOption(
+                icon: Icons.camera_alt,
+                title: 'Take Photo',
+                subtitle: 'Use camera to capture',
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.camera);
+                },
+              ),
+              Divider(height: 1.h, color: Colors.grey.shade200),
+              // Gallery option
+              _buildImageSourceOption(
+                icon: Icons.photo_library,
+                title: 'Choose from Gallery',
+                subtitle: 'Select from your photos',
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.gallery);
+                },
+              ),
+              if (_selectedImage != null) ...[
+                Divider(height: 1.h, color: Colors.grey.shade200),
+                // Remove photo option
+                _buildImageSourceOption(
+                  icon: Icons.delete_outline,
+                  title: 'Remove Photo',
+                  subtitle: 'Remove current photo',
+                  onTap: () {
+                    Navigator.pop(context);
+                    setState(() {
+                      _selectedImage = null;
+                    });
+                  },
+                  iconColor: Colors.red,
+                ),
+              ],
+              SizedBox(height: 20.h),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImageSourceOption({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    Color? iconColor,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+        child: Row(
+          children: [
+            Container(
+              width: 50.w,
+              height: 50.h,
+              decoration: BoxDecoration(
+                color: (iconColor ?? const Color(0xFF25A63E)).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+              child: Icon(
+                icon,
+                color: iconColor ?? const Color(0xFF25A63E),
+                size: 24.sp,
+              ),
+            ),
+            SizedBox(width: 16.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 15.sp,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  SizedBox(height: 2.h),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios,
+              size: 16.sp,
+              color: Colors.grey.shade400,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Request permission for camera or gallery
+  Future<bool> _requestPermission(ImageSource source) async {
+    Permission permission;
+
+    if (source == ImageSource.camera) {
+      permission = Permission.camera;
+    } else {
+      // For Android 13+ (API 33+), use photos permission
+      if (Platform.isAndroid) {
+        permission = Permission.photos;
+      } else {
+        permission = Permission.photos;
+      }
+    }
+
+    final status = await permission.status;
+
+    if (status.isGranted) {
+      return true;
+    }
+
+    if (status.isDenied) {
+      final result = await permission.request();
+      return result.isGranted;
+    }
+
+    if (status.isPermanentlyDenied) {
+      // Show dialog to open settings
+      if (mounted) {
+        await _showPermissionSettingsDialog(source);
+      }
+      return false;
+    }
+
+    return false;
+  }
+
+  /// Show dialog to open app settings
+  Future<void> _showPermissionSettingsDialog(ImageSource source) async {
+    final permissionName = source == ImageSource.camera ? 'Camera' : 'Photo Library';
+
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'Permission Required',
+          style: TextStyle(
+            fontSize: 18.sp,
+            fontWeight: FontWeight.w700,
+            color: Colors.black,
+          ),
+        ),
+        content: Text(
+          '$permissionName permission is required to upload profile photo. Please enable it in app settings.',
+          style: TextStyle(
+            fontSize: 14.sp,
+            fontWeight: FontWeight.w400,
+            color: Colors.black87,
+          ),
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.r),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: TextStyle(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade600,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              openAppSettings();
+            },
+            child: Text(
+              'Open Settings',
+              style: TextStyle(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF25A63E),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Pick image from camera or gallery
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      // Request permission first
+      final hasPermission = await _requestPermission(source);
+
+      if (!hasPermission) {
+        return;
+      }
+
+      final pickedFile = await _imagePicker.pickImage(
+        source: source,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+
+      if (pickedFile != null) {
+        setState(() {
+          _selectedImage = File(pickedFile.path);
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.white, size: 20.sp),
+                  SizedBox(width: 8.w),
+                  const Text('Photo selected successfully'),
+                ],
+              ),
+              backgroundColor: const Color(0xFF25A63E),
+              duration: const Duration(seconds: 2),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+              margin: EdgeInsets.all(16.w),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to pick image: $e'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+            margin: EdgeInsets.all(16.w),
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> _handleSave() async {
     if (_formKey.currentState!.validate()) {
       // Parse name into first and last name
@@ -88,6 +394,13 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
           ? nameParts.sublist(1).join(' ')
           : null;
 
+      // Show uploading state if image is selected
+      if (_selectedImage != null) {
+        setState(() {
+          _isUploadingImage = true;
+        });
+      }
+
       // Call profile provider to update profile
       await ref
           .read(profileProvider.notifier)
@@ -96,10 +409,18 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
             lastName: lastName,
             email: _emailController.text.trim(),
             phoneNumber: _phoneController.text.trim(),
+            profilePhoto: _selectedImage,
           );
 
       // Listen to profile state
       final profileState = ref.read(profileProvider);
+
+      // Reset uploading state
+      if (mounted && _isUploadingImage) {
+        setState(() {
+          _isUploadingImage = false;
+        });
+      }
 
       if (mounted) {
         if (profileState is ProfileUpdated || profileState is ProfileLoaded) {
@@ -373,29 +694,38 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                 child: Padding(
                   padding: EdgeInsets.all(3.w),
                   child: ClipOval(
-                    child: Image.asset(
-                      'assets/images/no-image.png', // Replace with actual profile image
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return DecoratedBox(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                const Color(0xFF25A63E).withValues(alpha: 0.1),
-                                const Color(0xFF0D5C2E).withValues(alpha: 0.1),
-                              ],
-                            ),
+                    child: _selectedImage != null
+                        ? Image.file(
+                            _selectedImage!,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: double.infinity,
+                          )
+                        : Image.asset(
+                            'assets/images/no-image.png',
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return DecoratedBox(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      const Color(0xFF25A63E)
+                                          .withValues(alpha: 0.1),
+                                      const Color(0xFF0D5C2E)
+                                          .withValues(alpha: 0.1),
+                                    ],
+                                  ),
+                                ),
+                                child: Icon(
+                                  Icons.person,
+                                  size: 50.sp,
+                                  color: const Color(0xFF0D5C2E),
+                                ),
+                              );
+                            },
                           ),
-                          child: Icon(
-                            Icons.person,
-                            size: 50.sp,
-                            color: const Color(0xFF0D5C2E),
-                          ),
-                        );
-                      },
-                    ),
                   ),
                 ),
               ),
@@ -407,26 +737,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
             right: 4.w,
             bottom: 4.h,
             child: GestureDetector(
-              onTap: () {
-                // Handle profile image edit
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Row(
-                      children: [
-                        const Icon(Icons.camera_alt, color: Colors.white),
-                        SizedBox(width: 8.w),
-                        const Text('Change profile picture'),
-                      ],
-                    ),
-                    duration: const Duration(seconds: 1),
-                    backgroundColor: const Color(0xFF25A63E),
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.r),
-                    ),
-                  ),
-                );
-              },
+              onTap: _showImageSourceDialog,
               child: Container(
                 width: 36.w,
                 height: 36.h,

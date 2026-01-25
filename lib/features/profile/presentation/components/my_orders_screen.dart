@@ -145,7 +145,7 @@ class _MyOrdersScreenState extends ConsumerState<MyOrdersScreen> {
         backgroundColor: Colors.white,
         displacement: 40.h,
         child: ListView.builder(
-          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
+          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
           itemCount: orders.length,
           itemBuilder: (context, index) {
             final order = orders[index];

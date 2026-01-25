@@ -139,7 +139,7 @@ class _OrderSummary extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(16.r),
       child: Padding(
-        padding: EdgeInsets.all(16.w),
+        padding: EdgeInsets.all(12.w),
         child: Row(
           children: [
             // Product image placeholder (order icon)
@@ -214,7 +214,7 @@ class _OrderSummary extends StatelessWidget {
                         ),
                       ),
 
-                      SizedBox(width: 10.w),
+                      SizedBox(width: 5.w),
 
                       // Status
                       Text(
@@ -551,7 +551,7 @@ class _ActionButtons extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
-      padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
+      padding: EdgeInsets.fromLTRB(10.w, 10.h, 10.w, 10.h),
       child: Row(
         children: [
           // Rate button (only show if order can be rated)
@@ -673,14 +673,23 @@ class _ReorderButtonState extends ConsumerState<_ReorderButton> {
   }
 
   Future<void> _handleReorder(BuildContext context, WidgetRef ref) async {
+    print('🔄 [REORDER] Starting reorder process for order ${widget.orderId}');
+
+    // Capture the navigator and providers before any async operations
+    final navigator = Navigator.of(context, rootNavigator: true);
+    final orderNotifier = ref.read(orderProvider.notifier);
+    final cartController = ref.read(cartControllerProvider.notifier);
+    print('🔍 [REORDER] Navigator and providers captured');
+
     // Show loading dialog with progress
     final progressNotifier = ValueNotifier<double>(0.0);
 
+    print('📱 [REORDER] Attempting to show progress dialog...');
     unawaited(
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => PopScope(
+        builder: (dialogContext) => PopScope(
           canPop: false,
           child: Center(
             child: Container(
@@ -694,8 +703,8 @@ class _ReorderButtonState extends ConsumerState<_ReorderButton> {
                 children: [
                   // Circular progress with percentage
                   SizedBox(
-                    width: 80.w,
-                    height: 80.h,
+                    width: 150.w,
+                    height: 150.h,
                     child: Stack(
                       alignment: Alignment.center,
                       children: [
@@ -704,7 +713,7 @@ class _ReorderButtonState extends ConsumerState<_ReorderButton> {
                           builder: (context, progress, child) {
                             return CircularProgressIndicator(
                               value: progress,
-                              strokeWidth: 6.w,
+                              strokeWidth: 1.w,
                               valueColor: const AlwaysStoppedAnimation<Color>(
                                 Color(0xFF25A63E),
                               ),
@@ -753,70 +762,88 @@ class _ReorderButtonState extends ConsumerState<_ReorderButton> {
         ),
       ),
     );
+    print('✅ [REORDER] Progress dialog shown');
 
-    final success = await ref.read(orderProvider.notifier).reorderWithProgress(
+    print('🌐 [REORDER] Calling reorder API...');
+    final success = await orderNotifier.reorderWithProgress(
           orderId: widget.orderId,
           onProgress: (current, total) {
             progressNotifier.value = current / total;
+            print('📊 [REORDER] Progress: $current/$total (${(current/total * 100).toInt()}%)');
           },
         );
+    print('🌐 [REORDER] API call completed. Success: $success');
 
-    // Close loading dialog
-    if (context.mounted) {
-      Navigator.of(context).pop();
+    // Close loading dialog using the captured navigator
+    print('🚪 [REORDER] Closing dialog using captured navigator...');
+    try {
+      navigator.pop();
+      print('✅ [REORDER] Dialog closed successfully');
+    } catch (e) {
+      print('❌ [REORDER] Failed to close dialog: $e');
     }
 
     progressNotifier.dispose();
-
-    if (!context.mounted) return;
+    print('🧹 [REORDER] Progress notifier disposed');
 
     if (success) {
-      // Refresh cart to get updated items and stock info
-      await ref
-          .read(cartControllerProvider.notifier)
-          .loadCart(forceRefresh: true);
+      print('✅ [REORDER] Reorder successful. Proceeding with cart refresh and navigation...');
 
-      if (!context.mounted) return;
+      // Refresh cart data FIRST (the reorder API already added items to cart)
+      print('🛒 [REORDER] Refreshing cart data...');
+      try {
+        // Use unawaited to refresh in background without blocking navigation
+        unawaited(
+          cartController.loadCart(forceRefresh: true).timeout(
+            const Duration(seconds: 5),
+            onTimeout: () {
+              print('⚠️ [REORDER] Cart refresh timed out after 5 seconds');
+            },
+          ).then((_) {
+            print('✅ [REORDER] Cart data refreshed');
+          }).catchError((e) {
+            print('⚠️ [REORDER] Cart refresh error: $e');
+          }),
+        );
+      } catch (e) {
+        print('⚠️ [REORDER] Cart refresh error: $e');
+      }
 
-      // Navigate to cart tab first
-      Navigator.of(context).popUntil((route) => route.isFirst);
-      MainNavigationShell.globalKey.currentState?.navigateToTab(3);
+      // Close the profile drawer if it's open
+      print('🚪 [REORDER] Attempting to close profile drawer...');
+      try {
+        navigator.pop(); // Close the drawer
+        print('✅ [REORDER] Profile drawer closed');
+      } catch (e) {
+        print('⚠️ [REORDER] Could not close drawer (may already be closed): $e');
+      }
 
-      // Show success message after a brief delay to ensure we're on cart screen
-      await Future.delayed(const Duration(milliseconds: 300));
+      // Small delay to let drawer close animation complete
+      await Future.delayed(const Duration(milliseconds: 100));
 
-      if (!context.mounted) return;
+      // Navigate to cart tab (index 3)
+      print('🧭 [REORDER] Attempting to navigate to cart tab (index 3)...');
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Items added to cart'),
-          duration: const Duration(seconds: 3),
-          backgroundColor: const Color(0xFF25A63E),
-          behavior: SnackBarBehavior.floating,
-          margin: EdgeInsets.only(
-            bottom: 80.h, // Above bottom navbar
-            left: 16.w,
-            right: 16.w,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.r),
-          ),
-        ),
-      );
+      // Get the navigation shell state fresh (not captured earlier)
+      final navigationShell = MainNavigationShell.globalKey.currentState;
+      print('🔍 [REORDER] NavigationShell state: ${navigationShell != null ? "Found" : "NULL"}');
+
+      if (navigationShell != null) {
+        print('🧭 [REORDER] Calling navigateToTab(3)...');
+        try {
+          navigationShell.navigateToTab(3);
+          print('✅ [REORDER] Navigation to cart tab completed');
+        } catch (e) {
+          print('❌ [REORDER] Navigation error: $e');
+        }
+      } else {
+        print('❌ [REORDER] NavigationShell is null! Cannot navigate to cart.');
+      }
+
+      print('🎉 [REORDER] Reorder process completed successfully!');
+
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text(
-            'Failed to reorder. Some items may be out of stock.',
-          ),
-          duration: const Duration(seconds: 3),
-          backgroundColor: Colors.red.shade600,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.r),
-          ),
-        ),
-      );
+      print('❌ [REORDER] Reorder failed. Items may be out of stock.');
     }
   }
 }

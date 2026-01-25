@@ -63,6 +63,7 @@ class Profile extends _$Profile {
     String? lastName,
     String? email,
     String? phoneNumber,
+    dynamic profilePhoto,
   }) async {
     try {
       // Get current user for optimistic update
@@ -78,6 +79,7 @@ class Profile extends _$Profile {
         lastName: lastName,
         email: email,
         phoneNumber: phoneNumber,
+        profilePhoto: profilePhoto,
       );
 
       result.fold(

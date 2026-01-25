@@ -59,17 +59,62 @@ class ProfileApi {
     String? lastName,
     String? email,
     String? phoneNumber,
+    dynamic profilePhoto,
   }) async {
     try {
-      final body = <String, dynamic>{
-        'first_name': firstName,
-        if (lastName != null && lastName.isNotEmpty) 'last_name': lastName,
-        if (email != null && email.isNotEmpty) 'email': email,
-        if (phoneNumber != null && phoneNumber.isNotEmpty)
-          'phone_number': phoneNumber,
-      };
+      dynamic requestData;
 
-      final res = await _dio.patch(ProfileEndpoints.updateProfile, data: body);
+      // If profile photo is provided, use FormData for multipart upload
+      if (profilePhoto != null) {
+        final formData = FormData();
+        formData.fields.add(MapEntry('first_name', firstName));
+        if (lastName != null && lastName.isNotEmpty) {
+          formData.fields.add(MapEntry('last_name', lastName));
+        }
+        if (email != null && email.isNotEmpty) {
+          formData.fields.add(MapEntry('email', email));
+        }
+        if (phoneNumber != null && phoneNumber.isNotEmpty) {
+          formData.fields.add(MapEntry('phone_number', phoneNumber));
+        }
+
+        // Add profile photo file
+        // Use platform-agnostic path separator
+        final pathSegments = profilePhoto.path.split(RegExp(r'[/\\]'));
+        final fileName = pathSegments.last;
+
+        formData.files.add(
+          MapEntry(
+            'profile_photo_file',
+            await MultipartFile.fromFile(
+              profilePhoto.path,
+              filename: fileName,
+            ),
+          ),
+        );
+        requestData = formData;
+      } else {
+        // Regular JSON request
+        requestData = <String, dynamic>{
+          'first_name': firstName,
+          if (lastName != null && lastName.isNotEmpty) 'last_name': lastName,
+          if (email != null && email.isNotEmpty) 'email': email,
+          if (phoneNumber != null && phoneNumber.isNotEmpty)
+            'phone_number': phoneNumber,
+        };
+      }
+
+      final res = await _dio.patch(
+        ProfileEndpoints.updateProfile,
+        data: requestData,
+        options: profilePhoto != null
+            ? Options(
+                headers: {
+                  'Content-Type': 'multipart/form-data',
+                },
+              )
+            : null,
+      );
 
       if (res.statusCode != 200) {
         throw Exception('Update profile failed: ${res.statusCode}');
@@ -79,9 +124,17 @@ class ProfileApi {
       final user = UserEntity.fromMap(data);
 
       return user;
-    } catch (e) {
+    } on DioException catch (e) {
+      // Enhanced error handling for file upload errors
+      if (e.response?.statusCode == 500 && profilePhoto != null) {
+        throw Exception(
+          'Server error while uploading photo. Please contact support or try updating without changing the photo.',
+        );
+      }
       final failure = mapDioError(e);
       throw Exception(failure.message);
+    } catch (e) {
+      throw Exception('Failed to update profile: $e');
     }
   }
 

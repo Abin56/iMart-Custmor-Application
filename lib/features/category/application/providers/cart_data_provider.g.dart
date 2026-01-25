@@ -6,7 +6,7 @@ part of 'cart_data_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$cartCategoriesHash() => r'96714e4c114f7ea051929262d6c1ccadfd26b5e6';
+String _$cartCategoriesHash() => r'9f83a04ca54fce903a5199ce142e1fa04b3eeb55';
 
 /// Provider for fetching all categories (filtered to only show categories with products)
 ///
@@ -26,7 +26,7 @@ final cartCategoriesProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef CartCategoriesRef = AutoDisposeFutureProviderRef<List<Category>>;
-String _$categoryProductsHash() => r'5997cd5b1c525c917ca60e75d7a20e62a1fd62e3';
+String _$categoryProductsHash() => r'3bd353759296acf1fb8a6fe4b18c5f1d341ead37';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -183,7 +183,7 @@ class _CategoryProductsProviderElement
 }
 
 String _$allCategoryProductsHash() =>
-    r'19e8de754694039f49187505b7e852d8f728f95a';
+    r'953b551fe0e5ba9821c10e009d8bf6564267ce29';
 
 /// Provider for fetching all products from all categories (combined)
 ///

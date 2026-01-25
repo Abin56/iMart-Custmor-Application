@@ -6,7 +6,7 @@ part of 'profile_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$profileHash() => r'da4546bf3255bdafeb330981cb73266fbedeea21';
+String _$profileHash() => r'f8c7245aaf9f4d903d0aa474de7803e466146568';
 
 /// Profile Notifier for managing user profile state
 ///

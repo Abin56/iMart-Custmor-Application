@@ -6,7 +6,7 @@ part of 'cart_controller.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$cartControllerHash() => r'25c29a6b9eb8e71720d37612b4332ecdbac9a7bf';
+String _$cartControllerHash() => r'1b1a255ca8ef9cfc0a3e590633e3d0792b13da10';
 
 /// Cart controller with debouncing for quantity updates
 ///

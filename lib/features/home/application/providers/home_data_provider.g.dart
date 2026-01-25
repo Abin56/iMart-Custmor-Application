@@ -6,7 +6,7 @@ part of 'home_data_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$categoriesHash() => r'123acf4d8253aba5285e38313641bc93fcdd37ba';
+String _$categoriesHash() => r'87f8a90dee236f8ebfdd552dba32fc2f08765fc0';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -158,7 +158,7 @@ class _CategoriesProviderElement
   bool? get isOffer => (origin as CategoriesProvider).isOffer;
 }
 
-String _$bannersHash() => r'47409899982dfcb78bc77a907eb8fe049f2efb7e';
+String _$bannersHash() => r'24e1fd9c2d4bd5273f06c320ca56b369f0439079';
 
 /// Provider for fetching promotional banners
 ///
@@ -177,7 +177,7 @@ final bannersProvider = AutoDisposeFutureProvider<List<PromoBanner>>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef BannersRef = AutoDisposeFutureProviderRef<List<PromoBanner>>;
-String _$offerCategoriesHash() => r'8733a5f7d11304b14e2bcd74e728ef541e5ce942';
+String _$offerCategoriesHash() => r'7f5150127a4152bba55a9a859084d2fb8fabadd7';
 
 /// Provider for fetching offer categories (convenience provider)
 ///
@@ -198,7 +198,7 @@ final offerCategoriesProvider =
 // ignore: unused_element
 typedef OfferCategoriesRef = AutoDisposeFutureProviderRef<List<Category>>;
 String _$discountedProductsHash() =>
-    r'0fabdf02d76ddc67952aaf4d3f72b3d294b5c884';
+    r'5ec95f54e5592c16328ea763e94251f8bdf2d3b1';
 
 /// Provider for fetching discounted products (Best Deals)
 ///
@@ -220,7 +220,7 @@ final discountedProductsProvider =
 typedef DiscountedProductsRef =
     AutoDisposeFutureProviderRef<List<ProductVariant>>;
 String _$offerCategoryProductsHash() =>
-    r'2a3338239cc8ec625728a77ef4b975a601d2b84a';
+    r'f53dcef9e69c3fe9dbc4b83ad28bead5ddc3d691';
 
 /// Provider for fetching products from first offer category (Mega Fresh offers)
 ///

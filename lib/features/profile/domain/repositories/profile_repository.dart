@@ -20,11 +20,13 @@ abstract class ProfileRepository {
   /// [lastName] - User's last name (optional)
   /// [email] - User's email address
   /// [phoneNumber] - User's phone number (optional)
+  /// [profilePhoto] - Profile photo file (optional)
   Future<Either<Failure, UserEntity>> updateProfile({
     required String firstName,
     String? lastName,
     String? email,
     String? phoneNumber,
+    dynamic profilePhoto,
   });
 
   /// Get cached profile data (instant, offline-first)

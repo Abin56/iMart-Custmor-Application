@@ -6,7 +6,7 @@ part of 'address_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$addressHash() => r'7a3ddc0aa545aa9c6f426590f8a9a8b4bf67901b';
+String _$addressHash() => r'd049da30175cab6a5155b85d911c94dbf793aa37';
 
 /// Address Notifier for managing delivery addresses state
 ///

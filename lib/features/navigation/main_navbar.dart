@@ -95,6 +95,10 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
   ];
 
   void _onNavItemTapped(int index) {
+    print('📍 [NAV] _onNavItemTapped called with index: $index');
+    print('📍 [NAV] Current index before: $_currentIndex');
+    print('📍 [NAV] Navigation history before: $_navigationHistory');
+
     setState(() {
       // Add current index to history if it's different from the last one
       if (_navigationHistory.isEmpty || _navigationHistory.last != index) {
@@ -103,6 +107,10 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
       _currentIndex = index;
       // Hide navbar when navigating to cart (index 3)
       _showNavBar = index != 3;
+
+      print('📍 [NAV] Current index after: $_currentIndex');
+      print('📍 [NAV] Show navbar: $_showNavBar');
+      print('📍 [NAV] Navigation history after: $_navigationHistory');
     });
 
     // Trigger animations when navigating to Categories screen

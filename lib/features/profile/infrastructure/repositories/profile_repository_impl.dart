@@ -87,6 +87,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
     String? lastName,
     String? email,
     String? phoneNumber,
+    dynamic profilePhoto,
   }) async {
     try {
       final updatedProfile = await _api.updateProfile(
@@ -94,6 +95,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
         lastName: lastName,
         email: email,
         phoneNumber: phoneNumber,
+        profilePhoto: profilePhoto,
       );
 
       // Update cache
