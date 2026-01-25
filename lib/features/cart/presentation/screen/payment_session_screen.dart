@@ -263,13 +263,23 @@ class _PaymentSessionScreenState extends ConsumerState<PaymentSessionScreen> {
       _logError('Payment initiation failed', e, stackTrace);
       if (!mounted) return;
       final errorMessage = e.toString().replaceAll('Exception: ', '');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(errorMessage),
-          duration: const Duration(seconds: 3),
-          backgroundColor: Colors.red,
-        ),
-      );
+
+      // Show detailed error in a dialog for multi-line messages
+      if (errorMessage.contains('\n')) {
+        _showErrorDialog(
+          'Payment Initiation Failed',
+          errorMessage,
+        );
+      } else {
+        // Show simple errors in snackbar
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
     }
   }
 
@@ -341,12 +351,21 @@ class _PaymentSessionScreenState extends ConsumerState<PaymentSessionScreen> {
         // Other verification errors
         _logError('Other verification error', errorMessage);
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Payment verification failed: $errorMessage'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          // Show detailed error in dialog for multi-line messages
+          if (errorMessage.contains('\n')) {
+            _showErrorDialog(
+              'Payment Verification Failed',
+              errorMessage,
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Payment verification failed: $errorMessage'),
+                backgroundColor: Colors.red,
+                duration: const Duration(seconds: 4),
+              ),
+            );
+          }
         }
       }
     }
@@ -407,6 +426,99 @@ class _PaymentSessionScreenState extends ConsumerState<PaymentSessionScreen> {
       SnackBar(
         content: Text('External Wallet: ${response.walletName}'),
         duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  /// Show error dialog with detailed message
+  void _showErrorDialog(String title, String message) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: EdgeInsets.all(24.w),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20.r),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Error icon
+              Container(
+                width: 70.w,
+                height: 70.h,
+                decoration: BoxDecoration(
+                  color: Colors.red.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.error_outline_rounded,
+                  color: Colors.red,
+                  size: 45.sp,
+                ),
+              ),
+
+              SizedBox(height: 20.h),
+
+              // Title
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 20.sp,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.black,
+                ),
+                textAlign: TextAlign.center,
+              ),
+
+              SizedBox(height: 12.h),
+
+              // Message
+              Container(
+                constraints: BoxConstraints(maxHeight: 300.h),
+                child: SingleChildScrollView(
+                  child: Text(
+                    message,
+                    style: TextStyle(
+                      fontSize: 13.sp,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.grey.shade700,
+                      height: 1.5,
+                    ),
+                    textAlign: TextAlign.left,
+                  ),
+                ),
+              ),
+
+              SizedBox(height: 24.h),
+
+              // OK Button
+              GestureDetector(
+                onTap: () => Navigator.of(context).pop(),
+                child: Container(
+                  width: double.infinity,
+                  height: 50.h,
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    borderRadius: BorderRadius.circular(25.r),
+                  ),
+                  child: Center(
+                    child: Text(
+                      'OK',
+                      style: TextStyle(
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
